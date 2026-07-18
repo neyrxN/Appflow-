@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AccessibilityInfo, Modal, Platform, View } from "react-native";
 import * as Haptics from "expo-haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -66,9 +66,9 @@ export function GameShell({
     setSolved((prev) => {
       if (prev) return prev;
       if (Platform.OS !== "web") {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(
-          () => {},
-        );
+        Haptics.notificationAsync(
+          Haptics.NotificationFeedbackType.Success,
+        ).catch(() => {});
       }
       onSolved?.();
       setRibbonVisible(true);
@@ -107,12 +107,9 @@ export function GameShell({
     }
   }, [history]);
 
-  const setResolver = useCallback(
-    (fn: ((url: string) => string) | null) => {
-      resolverRef.current = fn;
-    },
-    [],
-  );
+  const setResolver = useCallback((fn: ((url: string) => string) | null) => {
+    resolverRef.current = fn;
+  }, []);
 
   const setNetwork = useCallback((reqs: NetworkRequest[] | null) => {
     setNetworkState(reqs);
@@ -163,14 +160,20 @@ export function GameShell({
   const Site = puzzle.Site;
   const modalOpen = devtoolsOpen || revealOpen;
 
+  useEffect(
+    () => () => {
+      if (noteTimer.current) clearTimeout(noteTimer.current);
+      if (notifTimer.current) clearTimeout(notifTimer.current);
+    },
+    [],
+  );
+
   return (
-    <View className="flex-1 bg-slate-950" style={{ paddingTop: insets.top }}>
+    <View className="flex-1 bg-[#08090b]" style={{ paddingTop: insets.top }}>
       <View
         className="flex-1"
         accessibilityElementsHidden={modalOpen}
-        importantForAccessibility={
-          modalOpen ? "no-hide-descendants" : "auto"
-        }
+        importantForAccessibility={modalOpen ? "no-hide-descendants" : "auto"}
         aria-hidden={modalOpen}
       >
         <BrowserChrome

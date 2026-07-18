@@ -24,11 +24,11 @@ export function SuccessRibbon({
   onDismiss: () => void;
 }) {
   const insets = useSafeAreaInsets();
-  const y = useSharedValue(240);
+  const y = useSharedValue(180);
 
   useEffect(() => {
     y.value = withTiming(0, {
-      duration: 300,
+      duration: 240,
       reduceMotion: ReduceMotion.System,
     });
   }, [y]);
@@ -52,50 +52,66 @@ export function SuccessRibbon({
         },
       ]}
     >
-      <View className="overflow-hidden rounded-3xl border border-teal-900 bg-slate-900 shadow-lg">
-        <View className="h-1" style={{ backgroundColor: "#789f90" }} />
-        <View className="p-4 pt-3">
-          <View className="flex-row items-center">
-            <View className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-slate-800">
-              <Ionicons name="shield-checkmark" size={21} color="#91b3a4" />
-            </View>
-            <View className="flex-1">
-              <Text
-                className="text-[12px] font-bold uppercase tracking-[1.5px]"
-                style={{ color: "#91b3a4" }}
-              >
-                Case solved
-              </Text>
-              <Text
-                accessibilityLabel={`Case solved. ${message}`}
-                accessibilityLiveRegion="assertive"
-                accessibilityRole="alert"
-                className="mt-1 text-[15px] font-semibold leading-5 text-slate-100"
-              >
-                {message}
-              </Text>
-            </View>
-            <Pressable
-              onPress={onDismiss}
-              accessibilityRole="button"
-              accessibilityLabel="Dismiss case solved message"
-              className="h-12 w-12 items-center justify-center rounded-full active:bg-slate-800"
+      <View
+        className="overflow-hidden rounded-2xl border border-slate-700"
+        style={{ backgroundColor: "#11161a" }}
+      >
+        <View className="flex-row items-center p-3">
+          <View className="mr-3 h-9 w-9 items-center justify-center rounded-full bg-slate-800">
+            <Ionicons
+              name="shield-checkmark"
+              size={19}
+              color="#91b3a4"
+              accessible={false}
+            />
+          </View>
+          <View className="min-w-0 flex-1">
+            <Text
+              className="text-[12px] font-bold uppercase tracking-[1.5px]"
+              style={{ color: "#91b3a4" }}
             >
-              <Ionicons name="close" size={22} color="#cbd5e1" />
-            </Pressable>
+              Case solved
+            </Text>
+            <Text
+              accessibilityLabel={`Case solved. ${message}`}
+              accessibilityLiveRegion="assertive"
+              accessibilityRole="summary"
+              className="mt-0.5 text-[14px] font-semibold leading-5"
+              style={{ color: "#f3efe5" }}
+            >
+              {message}
+            </Text>
           </View>
           <Pressable
-            onPress={onExplain}
+            onPress={onDismiss}
             accessibilityRole="button"
-            accessibilityLabel="See what happened"
-            className="mt-3 h-12 flex-row items-center justify-center gap-2 rounded-xl bg-[#789f90] active:bg-[#648576]"
+            accessibilityLabel="Dismiss case solved message"
+            className="h-12 w-12 items-center justify-center rounded-full active:bg-slate-800"
           >
-            <Text className="text-[15px] font-bold text-ink">
-              See what happened
-            </Text>
-            <Ionicons name="arrow-forward" size={17} color="#0b0f14" />
+            <Ionicons
+              name="close"
+              size={21}
+              color="#cbd5e1"
+              accessible={false}
+            />
           </Pressable>
         </View>
+        <Pressable
+          onPress={onExplain}
+          accessibilityRole="button"
+          accessibilityLabel="View case explanation"
+          className="h-12 flex-row items-center justify-between border-t border-slate-700 px-4 active:bg-slate-800"
+        >
+          <Text className="text-[14px] font-bold" style={{ color: "#91b3a4" }}>
+            View explanation
+          </Text>
+          <Ionicons
+            name="arrow-forward"
+            size={17}
+            color="#91b3a4"
+            accessible={false}
+          />
+        </Pressable>
       </View>
     </Animated.View>
   );
@@ -116,11 +132,16 @@ export function ReopenPill({ onPress }: { onPress: () => void }) {
         zIndex: 10,
         minHeight: 48,
       }}
-      className="flex-row items-center gap-2 rounded-full border border-slate-700 bg-slate-800 px-4 active:bg-slate-700"
+      className="flex-row items-center gap-2 rounded-full border border-slate-700 bg-slate-900 px-4 active:bg-slate-800"
     >
-      <Ionicons name="shield-checkmark" size={16} color="#91b3a4" />
+      <Ionicons
+        name="shield-checkmark"
+        size={16}
+        color="#91b3a4"
+        accessible={false}
+      />
       <Text className="text-sm font-semibold text-slate-100">
-        Review solved case
+        Case explanation
       </Text>
     </Pressable>
   );

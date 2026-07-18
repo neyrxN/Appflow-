@@ -8,103 +8,67 @@ export function CaseCard({
   puzzle,
   index,
   solved,
-  recommended,
   onPress,
 }: {
   puzzle: Puzzle;
   index: number;
   solved: boolean;
-  recommended: boolean;
   onPress: () => void;
 }) {
   const meta = getCaseMeta(puzzle.id);
-  const status = solved ? "Case closed" : recommended ? "Up next" : "Ready";
+  const level = index + 1;
 
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`${status}. ${puzzle.title}. ${puzzle.question}`}
-      accessibilityHint="Opens this fictional cyber case"
-      className={`mb-4 min-h-12 overflow-hidden rounded-3xl border p-5 active:opacity-80 ${
-        recommended && !solved
-          ? "border-[#41584b] bg-slate-900"
-          : "border-slate-800 bg-slate-900"
+      accessibilityLabel={`Level ${level}, ${meta.appName}, ${meta.caseName}${solved ? ", completed" : ""}`}
+      accessibilityHint="Opens this case"
+      className={`min-h-[172px] flex-1 justify-between rounded-[24px] border p-4 active:opacity-75 ${
+        solved
+          ? "border-[#46564f] bg-[#161c1a]"
+          : "border-[#242a31] bg-[#13171c]"
       }`}
     >
-      <View className="mb-4 flex-row items-center justify-between">
-        <View className="flex-row items-center gap-2">
-          <Text className="font-mono text-[11px] font-bold uppercase tracking-[1.5px] text-slate-400">
-            Case {String(index + 1).padStart(2, "0")}
-          </Text>
-          <View
-            className={`rounded-full px-2.5 py-1 ${
-              solved
-                ? "bg-[#17241f]"
-                : recommended
-                  ? "bg-[#1d2d26]"
-                  : "bg-slate-800"
-            }`}
-          >
-            <Text
-              className={`text-[11px] font-bold ${
-                solved || recommended ? "text-[#9fb7aa]" : "text-slate-400"
-              }`}
-            >
-              {status}
-            </Text>
-          </View>
-        </View>
-        <View className="h-12 w-12 items-center justify-center rounded-2xl bg-slate-800">
-          <Text className="text-2xl" accessibilityElementsHidden>
+      <View className="flex-row items-start justify-between">
+        <View
+          className={`h-12 w-12 items-center justify-center rounded-2xl ${
+            solved ? "bg-[#26332e]" : "bg-[#20252b]"
+          }`}
+        >
+          <Text className="text-[23px]" accessibilityElementsHidden>
             {puzzle.emoji}
           </Text>
         </View>
-      </View>
 
-      <Text className="text-lg font-extrabold text-white">{puzzle.title}</Text>
-      <Text className="mt-2 text-[15px] leading-6 text-slate-300">
-        {puzzle.question}
-      </Text>
-
-      <View className="mt-4 flex-row flex-wrap gap-2">
-        <MetaPill icon="book-outline" label={meta.topic} />
-        <MetaPill icon="speedometer-outline" label={meta.difficulty} />
-        <MetaPill icon="time-outline" label={meta.duration} />
-      </View>
-
-      <View className="mt-5 min-h-12 flex-row items-center border-t border-slate-800 pt-3">
         {solved ? (
-          <View className="flex-1 flex-row items-center gap-2">
-            <Ionicons name="checkmark-circle" size={18} color="#9fb7aa" />
-            <Text className="flex-1 text-[13px] font-semibold text-slate-300">
-              Learned: {puzzle.vulnName}
-            </Text>
+          <View
+            accessibilityElementsHidden
+            className="h-7 w-7 items-center justify-center rounded-full bg-[#9fb7aa]"
+          >
+            <Ionicons name="checkmark" size={17} color="#0b0e12" />
           </View>
         ) : (
-          <Text className="flex-1 text-[13px] font-bold text-[#9fb7aa]">
-            Open case
+          <Text className="font-mono text-[11px] font-bold text-[#707780]">
+            {String(level).padStart(2, "0")}
           </Text>
         )}
-        <View className="h-12 w-12 items-center justify-center rounded-full bg-slate-800">
-          <Ionicons name="arrow-forward" size={18} color="#e2e8f0" />
-        </View>
+      </View>
+
+      <View className="mt-5">
+        <Text
+          numberOfLines={1}
+          className="text-[11px] font-bold uppercase tracking-[1.2px] text-[#7f8790]"
+        >
+          {meta.appName}
+        </Text>
+        <Text
+          numberOfLines={2}
+          className="mt-1.5 min-h-11 text-[17px] font-extrabold leading-[21px] text-[#f4f1e9]"
+        >
+          {meta.caseName}
+        </Text>
       </View>
     </Pressable>
-  );
-}
-
-function MetaPill({
-  icon,
-  label,
-}: {
-  icon: keyof typeof Ionicons.glyphMap;
-  label: string;
-}) {
-  return (
-    <View className="flex-row items-center gap-1.5 rounded-full bg-slate-800 px-3 py-1.5">
-      <Ionicons name={icon} size={13} color="#94a3b8" />
-      <Text className="text-xs font-medium text-slate-300">{label}</Text>
-    </View>
   );
 }

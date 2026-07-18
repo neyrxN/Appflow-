@@ -184,7 +184,7 @@ export const idorPuzzle: Puzzle = {
   title: "Slice & Co. — order status",
   emoji: "🍕",
   vulnName: "Broken access control (IDOR)",
-  question: "Can you read another customer's order?",
+  question: "Can you read another order?",
   initialUrl: "sliceandco.test/orders/1042",
   editableUrl: true,
   hints: [

@@ -42,18 +42,18 @@ function Json({ value }: { value: unknown }) {
   );
 }
 
-type SubTab = "details" | "sent" | "received";
+type SubTab = "headers" | "payload" | "response";
 
 const SUB_TAB_LABELS: Record<SubTab, string> = {
-  details: "Details",
-  sent: "Sent",
-  received: "Received",
+  headers: "Headers",
+  payload: "Payload",
+  response: "Response",
 };
 
 function RequestDetail({ request }: { request: NetworkRequest }) {
   const insets = useSafeAreaInsets();
   const editable = request.editable;
-  const [tab, setTab] = useState<SubTab>(editable ? "sent" : "received");
+  const [tab, setTab] = useState<SubTab>(editable ? "payload" : "response");
   const [editText, setEditText] = useState(
     editable ? JSON.stringify(editable.body, null, 2) : "",
   );
@@ -61,7 +61,7 @@ function RequestDetail({ request }: { request: NetworkRequest }) {
   const [resp, setResp] = useState<unknown>(request.response ?? null);
   const [resent, setResent] = useState(false);
 
-  const subTabs: SubTab[] = ["details", "sent", "received"];
+  const subTabs: SubTab[] = ["headers", "payload", "response"];
 
   function resend() {
     if (!editable) return;
@@ -85,7 +85,7 @@ function RequestDetail({ request }: { request: NetworkRequest }) {
     const serverResponse = editable.onResend(parsed as Record<string, unknown>);
     setResp(serverResponse);
     setResent(true);
-    setTab("received");
+    setTab("response");
   }
 
   function cancel() {
@@ -155,7 +155,7 @@ function RequestDetail({ request }: { request: NetworkRequest }) {
         ))}
       </View>
 
-      {tab === "details" ? (
+      {tab === "headers" ? (
         <ScrollView
           className="px-4"
           contentContainerStyle={{
@@ -163,19 +163,16 @@ function RequestDetail({ request }: { request: NetworkRequest }) {
             paddingBottom: insets.bottom + 24,
           }}
         >
-          <Text className="mb-2 text-[13px] font-bold text-slate-200">
-            Request details
+          <Text className="mb-2 text-[12px] font-bold uppercase tracking-wide text-slate-400">
+            General
           </Text>
           <View className="mb-6 rounded-2xl border border-slate-800 bg-black/40 p-4">
             <HeaderLine k="Request path" v={request.path} />
-            <HeaderLine k="Method" v={request.method} />
+            <HeaderLine k="Request Method" v={request.method} />
             <HeaderLine k="Status Code" v={`${request.status}`} />
           </View>
-          <Text className="mb-1 text-[13px] font-bold text-slate-200">
-            Headers sent by the browser
-          </Text>
-          <Text className="mb-3 text-[13px] leading-5 text-slate-400">
-            Technical details attached to the request.
+          <Text className="mb-2 text-[12px] font-bold uppercase tracking-wide text-slate-400">
+            Request headers
           </Text>
           <View className="rounded-2xl border border-slate-800 bg-black/40 p-4">
             {Object.entries(request.reqHeaders ?? DEFAULT_HEADERS).map(
@@ -187,7 +184,7 @@ function RequestDetail({ request }: { request: NetworkRequest }) {
         </ScrollView>
       ) : null}
 
-      {tab === "sent" ? (
+      {tab === "payload" ? (
         editable ? (
           <>
             <ScrollView
@@ -195,12 +192,8 @@ function RequestDetail({ request }: { request: NetworkRequest }) {
               keyboardShouldPersistTaps="handled"
               contentContainerStyle={{ paddingTop: 18, paddingBottom: 16 }}
             >
-              <Text className="mb-1 text-[13px] font-bold text-slate-200">
-                Sent to the site · editable JSON
-              </Text>
-              <Text className="mb-3 text-[13px] leading-5 text-slate-400">
-                This is what the browser is about to send. Change a value, then
-                send the request again.
+              <Text className="mb-3 text-[12px] font-bold uppercase tracking-wide text-slate-300">
+                Request payload · editable
               </Text>
               <TextInput
                 value={editText}
@@ -212,8 +205,8 @@ function RequestDetail({ request }: { request: NetworkRequest }) {
                 autoCapitalize="none"
                 autoCorrect={false}
                 spellCheck={false}
-                accessibilityLabel="Editable raw JSON sent to the site"
-                accessibilityHint="Change a value, then choose Edit and resend"
+                accessibilityLabel="Editable request payload in raw JSON"
+                accessibilityHint="Change a value, then choose Send request"
                 keyboardType={
                   Platform.OS === "ios" ? "ascii-capable" : "visible-password"
                 }
@@ -249,11 +242,16 @@ function RequestDetail({ request }: { request: NetworkRequest }) {
               <Pressable
                 onPress={resend}
                 accessibilityRole="button"
-                accessibilityLabel="Edit and resend request"
+                accessibilityLabel="Send edited request"
                 className="h-12 flex-[1.6] flex-row items-center justify-center gap-2 rounded-xl bg-[#789f90] active:bg-[#648576]"
               >
-                <Ionicons name="paper-plane" size={16} color="#0b0f14" />
-                <Text className="font-bold text-ink">Edit and resend</Text>
+                <Ionicons
+                  name="paper-plane"
+                  size={16}
+                  color="#0b0f14"
+                  accessible={false}
+                />
+                <Text className="font-bold text-ink">Send request</Text>
               </Pressable>
             </View>
           </>
@@ -266,13 +264,13 @@ function RequestDetail({ request }: { request: NetworkRequest }) {
             }}
           >
             <Text className="text-[15px] leading-6 text-slate-400">
-              Nothing was sent in the body of this request.
+              This request has no payload.
             </Text>
           </ScrollView>
         )
       ) : null}
 
-      {tab === "received" ? (
+      {tab === "response" ? (
         <ScrollView
           className="px-4"
           contentContainerStyle={{
@@ -285,10 +283,7 @@ function RequestDetail({ request }: { request: NetworkRequest }) {
             className={`mb-1 text-[13px] font-bold ${resent ? "" : "text-slate-200"}`}
             style={resent ? { color: "#91b3a4" } : undefined}
           >
-            {resent ? "Received after resend" : "Received from the site"}
-          </Text>
-          <Text className="mb-3 text-[13px] leading-5 text-slate-400">
-            The raw response returned to the browser.
+            {resent ? "Response · resent" : "Response"}
           </Text>
           {resp !== null && resp !== undefined ? (
             <Json value={resp} />
@@ -301,7 +296,7 @@ function RequestDetail({ request }: { request: NetworkRequest }) {
           ) : (
             <Text className="text-[15px] leading-6 text-slate-400">
               {editable
-                ? "Send the edited request to see what comes back."
+                ? "Send the request to view its response."
                 : "This response has no body."}
             </Text>
           )}
@@ -361,7 +356,7 @@ export function DevToolsPanel({
 
   return (
     <View
-      accessibilityLabel="Investigator Tools"
+      accessibilityLabel="Developer Tools, Network"
       accessibilityViewIsModal
       role="dialog"
       style={{
@@ -407,34 +402,51 @@ export function DevToolsPanel({
             <Pressable
               onPress={() => setSelected(null)}
               accessibilityRole="button"
-              accessibilityLabel="Back to captured requests"
+              accessibilityLabel="Back to network requests"
               className="h-12 w-12 items-center justify-center rounded-full active:bg-slate-800"
             >
-              <Ionicons name="chevron-back" size={24} color="#cbd5e1" />
+              <Ionicons
+                name="chevron-back"
+                size={24}
+                color="#cbd5e1"
+                accessible={false}
+              />
             </Pressable>
           ) : (
             <View className="h-12 w-12 items-center justify-center rounded-full bg-slate-800">
-              <Ionicons name="search" size={21} color="#91b3a4" />
+              <Ionicons
+                name="git-network-outline"
+                size={21}
+                color="#91b3a4"
+                accessible={false}
+              />
             </View>
           )}
           <View className="ml-2 flex-1">
             <Text
               accessibilityRole="header"
-              className="text-lg font-bold text-white"
+              className="text-lg font-bold"
+              style={{ color: "#f3efe5" }}
             >
-              Investigator Tools
+              Developer Tools
             </Text>
             <Text className="mt-0.5 text-[13px] text-slate-400">
-              Network activity
+              Network · {requests.length}{" "}
+              {requests.length === 1 ? "request" : "requests"}
             </Text>
           </View>
           <Pressable
             onPress={onClose}
             accessibilityRole="button"
-            accessibilityLabel="Close Investigator Tools"
+            accessibilityLabel="Close Developer Tools"
             className="h-12 w-12 items-center justify-center rounded-full active:bg-slate-800"
           >
-            <Ionicons name="close" size={24} color="#cbd5e1" />
+            <Ionicons
+              name="close"
+              size={24}
+              color="#cbd5e1"
+              accessible={false}
+            />
           </Pressable>
         </View>
 
@@ -444,23 +456,16 @@ export function DevToolsPanel({
           <ScrollView
             contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
           >
-            <View className="border-b border-slate-800 bg-slate-950/50 px-4 py-4">
-              <Text className="text-[15px] font-bold text-slate-100">
-                Captured requests
-              </Text>
-              <Text className="mt-1 text-[13px] leading-5 text-slate-400">
-                Open one to inspect what the browser sent and what the site
-                returned.
-              </Text>
-            </View>
             {requests.length === 0 ? (
               <View className="items-center px-6 pt-10">
-                <Ionicons name="radio-outline" size={28} color="#64748b" />
+                <Ionicons
+                  name="radio-outline"
+                  size={28}
+                  color="#64748b"
+                  accessible={false}
+                />
                 <Text className="mt-3 text-center text-[15px] font-semibold text-slate-300">
-                  No network activity yet
-                </Text>
-                <Text className="mt-1 text-center text-[13px] leading-5 text-slate-400">
-                  Interact with the site, then check here again.
+                  No requests captured
                 </Text>
               </View>
             ) : (
@@ -470,7 +475,7 @@ export function DevToolsPanel({
                   onPress={() => setSelected(i)}
                   accessibilityRole="button"
                   accessibilityLabel={`${r.method} ${r.path}, received status ${r.status}`}
-                  accessibilityHint="Open sent and received request details"
+                  accessibilityHint="Open headers, payload, and response"
                   className="min-h-16 border-b border-slate-800 px-4 py-3 active:bg-slate-800"
                 >
                   <View className="flex-row items-center gap-3">
@@ -489,9 +494,6 @@ export function DevToolsPanel({
                       {r.path}
                     </Text>
                     <View className="items-end">
-                      <Text className="text-[11px] font-semibold text-slate-400">
-                        RECEIVED
-                      </Text>
                       <Text
                         className="font-mono text-[13px] font-semibold"
                         style={{ color: "#91b3a4" }}
@@ -503,6 +505,7 @@ export function DevToolsPanel({
                       name="chevron-forward"
                       size={18}
                       color="#64748b"
+                      accessible={false}
                     />
                   </View>
                   <Text className="ml-[60px] mt-1 text-[12px] text-slate-400">

@@ -220,7 +220,7 @@ export const otpPuzzle: Puzzle = {
   title: "Nimbus Eats — sign-in",
   emoji: "🔐",
   vulnName: "Secret verified on the client",
-  question: "Can you sign in as someone whose phone you don't have?",
+  question: "Can you sign in without the phone?",
   initialUrl: "nimbuseats.test/verify",
   editableUrl: false,
   hints: [

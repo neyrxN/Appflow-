@@ -173,7 +173,7 @@ export const couponPuzzle: Puzzle = {
   title: "Slice & Co. — discount",
   emoji: "🎟️",
   vulnName: "Business Logic Flaw",
-  question: "Can you get this £30 order for under £20?",
+  question: "Can you get the £30 order below £20?",
   initialUrl: "sliceandco.test/checkout",
   editableUrl: false,
   hints: [

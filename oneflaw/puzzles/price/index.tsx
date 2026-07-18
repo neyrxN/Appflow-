@@ -196,7 +196,7 @@ export const pricePuzzle: Puzzle = {
   title: "SOLE — sneaker drop",
   emoji: "👟",
   vulnName: "Trusting client-side input",
-  question: "Can you decide your own price at checkout?",
+  question: "Can you change the checkout price?",
   initialUrl: "sole.test/checkout",
   editableUrl: false,
   hints: [
