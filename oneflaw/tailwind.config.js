@@ -10,10 +10,10 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Single accent — confident "hacker" green.
+        // One restrained accent. Motion and hierarchy carry the game's energy.
         accent: {
-          DEFAULT: "#22e07a",
-          dark: "#12b862",
+          DEFAULT: "#789f90",
+          dark: "#648576",
         },
         ink: "#0b0f14", // near-black used by the reveal card
       },

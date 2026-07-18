@@ -184,7 +184,7 @@ export const idorPuzzle: Puzzle = {
   title: "Slice & Co. — order status",
   emoji: "🍕",
   vulnName: "Broken access control (IDOR)",
-  question: "Can you read another customer's order?",
+  question: "Can you read another order?",
   initialUrl: "sliceandco.test/orders/1042",
   editableUrl: true,
   hints: [
@@ -204,6 +204,6 @@ export const idorPuzzle: Puzzle = {
     howToPrevent:
       "On every request, verify the logged-in user actually owns the record before returning it. Don't rely on IDs being secret.",
     realIncident:
-      "Panera Bread, 2018: anyone could increment a number in the URL to read millions of customer records — names, addresses, partial card numbers (estimates ran up to ~37M). It reportedly sat unfixed for around eight months.",
+      "Panera Bread, 2018: its website returned customer details without checking whether the visitor was signed in or allowed to see them. A researcher reported the flaw in August 2017, but it remained until public reporting in April 2018. Panera and researchers strongly disagreed about how many records were exposed.",
   },
 };

@@ -132,12 +132,12 @@ function OtpSite({ game }: { game: GameCtx }) {
 
       <View className="items-center">
         <View className="mb-5 h-16 w-16 items-center justify-center rounded-2xl bg-slate-800">
-          <Ionicons name="shield-checkmark" size={30} color="#22e07a" />
+          <Ionicons name="shield-checkmark" size={30} color="#789f90" />
         </View>
 
         {phase === "success" ? (
           <View className="w-full items-center rounded-2xl bg-slate-900 p-8">
-            <Ionicons name="lock-open" size={30} color="#22e07a" />
+            <Ionicons name="lock-open" size={30} color="#789f90" />
             <Text className="mt-3 text-center text-base font-bold text-white">
               You&apos;re in.
             </Text>
@@ -160,6 +160,8 @@ function OtpSite({ game }: { game: GameCtx }) {
 
             <TextInput
               value={code}
+              accessibilityLabel="Six-digit verification code"
+              accessibilityHint="Enter the code you discover in the training browser tools"
               onChangeText={(t) => {
                 setCode(t.replace(/[^0-9]/g, "").slice(0, 6));
                 setError(null);
@@ -172,7 +174,10 @@ function OtpSite({ game }: { game: GameCtx }) {
             />
 
             {error ? (
-              <Text className="mt-3 text-center text-sm text-red-400">
+              <Text
+                accessibilityLiveRegion="polite"
+                className="mt-3 text-center text-sm text-red-300"
+              >
                 {error}
               </Text>
             ) : null}
@@ -180,7 +185,10 @@ function OtpSite({ game }: { game: GameCtx }) {
             <Pressable
               onPress={verify}
               disabled={phase === "checking"}
-              className="mt-5 w-full flex-row items-center justify-center gap-2 rounded-xl bg-accent py-3.5 active:bg-accent-dark"
+              accessibilityRole="button"
+              accessibilityLabel={phase === "checking" ? "Checking code" : "Verify code"}
+              accessibilityState={{ disabled: phase === "checking", busy: phase === "checking" }}
+              className="mt-5 min-h-12 w-full flex-row items-center justify-center gap-2 rounded-xl bg-accent px-4 active:bg-accent-dark"
             >
               {phase === "checking" ? (
                 <ActivityIndicator color="#0b0f14" />
@@ -189,7 +197,12 @@ function OtpSite({ game }: { game: GameCtx }) {
               )}
             </Pressable>
 
-            <Pressable onPress={resend} className="mt-4 py-1">
+            <Pressable
+              onPress={resend}
+              accessibilityRole="button"
+              accessibilityLabel="Resend verification code"
+              className="mt-3 min-h-12 items-center justify-center px-4"
+            >
               <Text className="text-sm text-slate-400">
                 {resent ? "Code re-sent ✓" : "Didn't get a code? Resend"}
               </Text>
@@ -207,7 +220,7 @@ export const otpPuzzle: Puzzle = {
   title: "Nimbus Eats — sign-in",
   emoji: "🔐",
   vulnName: "Secret verified on the client",
-  question: "Can you sign in as someone whose phone you don't have?",
+  question: "Can you sign in without the phone?",
   initialUrl: "nimbuseats.test/verify",
   editableUrl: false,
   hints: [
@@ -227,6 +240,6 @@ export const otpPuzzle: Puzzle = {
     howToPrevent:
       "Verify one-time codes on the server. Compare what the user types against a secret the browser never sees, and rate-limit attempts.",
     realIncident:
-      "A recurring bug-bounty finding: apps that returned the OTP in the server's response to the browser, letting anyone bypass 2FA. (Swap in a vetted named case before the demo if you have one.)",
+      "Seen in real security tests: one-time codes sometimes appear in browser-accessible HTML or JavaScript. If the browser receives the secret answer, someone who can inspect the page can bypass the extra sign-in check.",
   },
 };

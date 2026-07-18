@@ -1,33 +1,57 @@
 import { useEffect } from "react";
-import { Text } from "react-native";
+import { AccessibilityInfo, Platform, Text, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
+  useReducedMotion,
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
 
-/**
- * Transient in-world feedback (e.g. "No order found"). Neutral — never framed
- * as a failure or a used-up attempt.
- */
+/** Transient, neutral feedback. GameShell unmounts it after its display time. */
 export function Toast({ message }: { message: string }) {
+  const reduceMotion = useReducedMotion();
   const opacity = useSharedValue(0);
 
   useEffect(() => {
-    opacity.value = withTiming(1, { duration: 160 });
-  }, [message, opacity]);
+    opacity.value = withTiming(1, { duration: reduceMotion ? 0 : 140 });
+    if (Platform.OS === "ios") {
+      AccessibilityInfo.announceForAccessibility(message);
+    }
+  }, [message, opacity, reduceMotion]);
 
-  const style = useAnimatedStyle(() => ({ opacity: opacity.value }));
+  const animatedStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
 
   return (
-    <Animated.View
-      pointerEvents="none"
-      style={style}
-      className="absolute bottom-10 left-0 right-0 items-center"
+    <View
+      accessibilityLiveRegion="polite"
+      style={{
+        pointerEvents: "none",
+        position: "absolute",
+        bottom: 40,
+        left: 0,
+        right: 0,
+        zIndex: 35,
+        alignItems: "center",
+        paddingHorizontal: 16,
+      }}
     >
-      <Text className="overflow-hidden rounded-full bg-slate-900/90 px-4 py-2 text-sm font-medium text-slate-100">
-        {message}
-      </Text>
-    </Animated.View>
+      <Animated.View style={animatedStyle}>
+        <View
+          style={{
+            maxWidth: 520,
+            borderWidth: 1,
+            borderColor: "#475569",
+            borderRadius: 14,
+            backgroundColor: "rgba(15, 23, 42, 0.98)",
+            paddingHorizontal: 16,
+            paddingVertical: 10,
+          }}
+        >
+          <Text className="text-center text-[14px] font-semibold leading-5 text-slate-100">
+            {message}
+          </Text>
+        </View>
+      </Animated.View>
+    </View>
   );
 }

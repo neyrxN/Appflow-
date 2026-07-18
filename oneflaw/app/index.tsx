@@ -4,15 +4,19 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { puzzles } from "@/puzzles/registry";
+import { CaseCard } from "@/components/home/CaseCard";
+import { Entrance } from "@/components/home/Entrance";
+import { HowToPlayModal } from "@/components/home/HowToPlayModal";
+import { ProgressBar } from "@/components/home/ProgressBar";
 import { getSolved } from "@/lib/storage";
+import { puzzles } from "@/puzzles/registry";
 
 export default function Dashboard() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [solved, setSolved] = useState<string[]>([]);
+  const [howToVisible, setHowToVisible] = useState(false);
 
-  // Refresh the ✓ badges whenever we return to the dashboard.
   useFocusEffect(
     useCallback(() => {
       let active = true;
@@ -23,70 +27,127 @@ export default function Dashboard() {
     }, []),
   );
 
+  const openCase = useCallback(
+    (id: string) => {
+      router.push({ pathname: "/play/[id]", params: { id } });
+    },
+    [router],
+  );
+
+  const solvedCount = puzzles.filter((puzzle) =>
+    solved.includes(puzzle.id),
+  ).length;
+  const progress = puzzles.length === 0 ? 0 : (solvedCount / puzzles.length) * 100;
+  const rows = Array.from(
+    { length: Math.ceil(puzzles.length / 2) },
+    (_, index) => puzzles.slice(index * 2, index * 2 + 2),
+  );
+
   return (
-    <View className="flex-1 bg-slate-950">
+    <View className="flex-1 bg-[#0b0e12]">
       <ScrollView
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingTop: insets.top + 24,
-          paddingBottom: insets.bottom + 32,
+          paddingTop: insets.top + 10,
+          paddingBottom: insets.bottom + 28,
           paddingHorizontal: 20,
         }}
       >
-        {/* Wordmark */}
-        <View className="mb-1 flex-row items-center gap-2">
-          <Ionicons name="bug" size={26} color="#22e07a" />
-          <Text className="text-3xl font-extrabold tracking-tight text-white">
-            One<Text className="text-accent">Flaw</Text>
-          </Text>
-        </View>
-        <Text className="mb-8 text-[15px] leading-6 text-slate-400">
-          Each site below hides exactly one security mistake. Poke around, break
-          it, and learn what really went wrong.
-        </Text>
-
-        {puzzles.map((p) => {
-          const isSolved = solved.includes(p.id);
-          return (
-            <Pressable
-              key={p.id}
-              onPress={() => router.push(`/play/${p.id}`)}
-              className="mb-4 rounded-2xl border border-slate-800 bg-slate-900 p-5 active:border-slate-700 active:bg-slate-800"
-            >
-              <View className="flex-row items-center gap-3">
-                <Text className="text-3xl">{p.emoji}</Text>
-                <View className="flex-1">
-                  <View className="flex-row items-center gap-2">
-                    <Text className="text-lg font-bold text-white">
-                      {p.title}
-                    </Text>
-                    {isSolved ? (
-                      <Ionicons
-                        name="checkmark-circle"
-                        size={18}
-                        color="#22e07a"
-                      />
-                    ) : null}
-                  </View>
-                  <Text className="mt-0.5 text-sm text-slate-400">
-                    {p.question}
-                  </Text>
-                  {isSolved ? (
-                    <Text className="mt-1 text-xs font-semibold text-accent">
-                      Solved · {p.vulnName}
-                    </Text>
-                  ) : null}
-                </View>
-                <Ionicons name="chevron-forward" size={20} color="#475569" />
+        <Entrance>
+          <View className="min-h-12 flex-row items-center justify-between">
+            <View className="flex-row items-center gap-3">
+              <View className="h-11 w-11 items-center justify-center rounded-2xl bg-[#9fb7aa]">
+                <Ionicons name="bug" size={22} color="#0b0e12" />
               </View>
-            </Pressable>
-          );
-        })}
+              <Text className="text-xl font-extrabold tracking-tight text-[#f4f1e9]">
+                One<Text className="text-[#9fb7aa]">Flaw</Text>
+              </Text>
+            </View>
 
-        <Text className="mt-6 text-center text-xs text-slate-600">
-          Everything here is fictional. No real sites, people, or systems are
-          involved.
-        </Text>
+            <Pressable
+              onPress={() => setHowToVisible(true)}
+              accessibilityRole="button"
+              accessibilityLabel="How to play"
+              accessibilityHint="Opens a short game guide"
+              hitSlop={4}
+              className="h-12 w-12 items-center justify-center rounded-full active:bg-[#191e24]"
+            >
+              <Ionicons
+                name="information-circle-outline"
+                size={25}
+                color="#a7adb5"
+              />
+            </Pressable>
+          </View>
+        </Entrance>
+
+        <Entrance delay={55}>
+          <View className="mb-6 mt-8">
+            <View className="flex-row items-end justify-between">
+              <View className="flex-1 pr-4">
+                <Text
+                  accessibilityRole="header"
+                  className="text-[28px] font-extrabold leading-8 tracking-tight text-[#f4f1e9]"
+                >
+                  Choose a case
+                </Text>
+                <Text className="mt-1 text-sm text-[#8d949d]">
+                  Find the flaw. Every level is open.
+                </Text>
+              </View>
+              <Text
+                accessibilityLabel={`${solvedCount} of ${puzzles.length} cases solved`}
+                className="pb-0.5 font-mono text-sm font-bold text-[#9fb7aa]"
+              >
+                {solvedCount}/{puzzles.length}
+              </Text>
+            </View>
+
+            <View
+              accessible
+              accessibilityRole="progressbar"
+              accessibilityLabel="Cases solved"
+              accessibilityValue={{
+                min: 0,
+                max: puzzles.length,
+                now: solvedCount,
+              }}
+              className="mt-4 h-1.5 overflow-hidden rounded-full bg-[#20252b]"
+            >
+              <ProgressBar progress={progress} />
+            </View>
+          </View>
+        </Entrance>
+
+        <View accessibilityLabel="Available cases">
+          {rows.map((row, rowIndex) => (
+            <Entrance key={row[0].id} delay={100 + rowIndex * 55}>
+              <View className="mb-3 flex-row gap-3">
+                {row.map((puzzle) => {
+                  const index = puzzles.findIndex((item) => item.id === puzzle.id);
+                  return (
+                    <CaseCard
+                      key={puzzle.id}
+                      puzzle={puzzle}
+                      index={index}
+                      solved={solved.includes(puzzle.id)}
+                      onPress={() => openCase(puzzle.id)}
+                    />
+                  );
+                })}
+                {row.length === 1 ? (
+                  <View className="flex-1" accessibilityElementsHidden />
+                ) : null}
+              </View>
+            </Entrance>
+          ))}
+        </View>
       </ScrollView>
+
+      <HowToPlayModal
+        visible={howToVisible}
+        onDismiss={() => setHowToVisible(false)}
+      />
     </View>
   );
 }

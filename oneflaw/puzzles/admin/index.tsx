@@ -96,7 +96,10 @@ function AdminSite({ game }: { game: GameCtx }) {
             <Pressable
               key={n.route}
               onPress={() => gameRef.current.navigate(`/${n.route}`)}
-              className={`flex-row items-center gap-1.5 rounded-full px-3 py-1.5 ${
+              accessibilityRole="button"
+              accessibilityLabel={`Open ${n.label}`}
+              accessibilityState={{ selected: active }}
+              className={`min-h-12 flex-row items-center gap-1.5 rounded-full px-4 ${
                 active ? "bg-accent" : "bg-slate-800"
               }`}
             >
@@ -156,12 +159,12 @@ function KV({ label, value }: { label: string; value: string }) {
 function AccountPage() {
   return (
     <>
-      <View className="mb-4 rounded-2xl bg-indigo-600 p-5">
-        <Text className="text-xs font-semibold uppercase tracking-widest text-indigo-200">
+      <View className="mb-4 rounded-2xl border border-slate-700 bg-slate-800 p-5">
+        <Text className="text-xs font-semibold uppercase tracking-widest text-[#9fb7aa]">
           Welcome back
         </Text>
         <Text className="mt-1 text-lg font-bold text-white">Alex Rivera</Text>
-        <Text className="mt-4 text-sm text-indigo-100">Premium · Active</Text>
+        <Text className="mt-4 text-sm text-slate-300">Premium · Active</Text>
       </View>
       <Card>
         <Text className="mb-1 text-sm font-semibold text-slate-300">
@@ -306,7 +309,11 @@ function SettingsPage() {
           last
         />
       </View>
-      <Pressable className="flex-row items-center justify-center gap-2 rounded-2xl border border-slate-700 py-3.5 active:bg-slate-800">
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Change password"
+        className="min-h-12 flex-row items-center justify-center gap-2 rounded-2xl border border-slate-700 px-4 active:bg-slate-800"
+      >
         <Ionicons name="key-outline" size={16} color="#e2e8f0" />
         <Text className="font-semibold text-slate-200">Change password</Text>
       </Pressable>
@@ -335,7 +342,8 @@ function ToggleRow({
       <Switch
         value={value}
         onValueChange={onChange}
-        trackColor={{ false: "#475569", true: "#22e07a" }}
+        accessibilityLabel={label}
+        trackColor={{ false: "#475569", true: "#789f90" }}
         thumbColor="#f8fafc"
       />
     </View>
@@ -346,7 +354,7 @@ function AdminPage() {
   return (
     <>
       <View className="mb-2 flex-row items-center gap-2">
-        <Ionicons name="server" size={15} color="#22e07a" />
+        <Ionicons name="server" size={15} color="#789f90" />
         <Text className="text-xs font-semibold uppercase tracking-wide text-accent">
           Admin dashboard · all members
         </Text>
@@ -413,6 +421,6 @@ export const adminPuzzle: Puzzle = {
     howToPrevent:
       "Guard every sensitive page with a real server-side permission check. Obscurity is not security.",
     realIncident:
-      "McDonald's 'McHire', 2025: a back-office interface was reachable and weakly protected, exposing millions of applicants' data. (Verify the exact framing before the demo.)",
+      "A.S. Watson, 2024: a researcher found an alternate shop API with little or no access control. It let him create an admin user and change promotional content without a proper sign-in. The flaw was reported through HackerOne and fixed within days.",
   },
 };

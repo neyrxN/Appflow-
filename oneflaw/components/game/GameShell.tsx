@@ -1,7 +1,6 @@
-import { useCallback, useMemo, useRef, useState } from "react";
-import { Platform, Pressable, Text, View } from "react-native";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { AccessibilityInfo, Modal, Platform, View } from "react-native";
 import * as Haptics from "expo-haptics";
-import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type {
@@ -42,7 +41,6 @@ export function GameShell({
   const [revealOpen, setRevealOpen] = useState(false);
   const [hintsShown, setHintsShown] = useState(0);
 
-  const [menuOpen, setMenuOpen] = useState(false);
   const [network, setNetworkState] = useState<NetworkRequest[] | null>(null);
   const [devtoolsOpen, setDevtoolsOpen] = useState(false);
 
@@ -55,6 +53,8 @@ export function GameShell({
   idxRef.current = idx;
   const noteTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const notifTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const successMessage =
+    puzzle.successMessage ?? "🔓 Nice — you just broke it.";
 
   const showNote = useCallback((msg: string) => {
     setNote(msg);
@@ -66,15 +66,18 @@ export function GameShell({
     setSolved((prev) => {
       if (prev) return prev;
       if (Platform.OS !== "web") {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(
-          () => {},
-        );
+        Haptics.notificationAsync(
+          Haptics.NotificationFeedbackType.Success,
+        ).catch(() => {});
       }
       onSolved?.();
       setRibbonVisible(true);
+      if (Platform.OS === "ios") {
+        AccessibilityInfo.announceForAccessibility(successMessage);
+      }
       return true;
     });
-  }, [onSolved]);
+  }, [onSolved, successMessage]);
 
   // Commit a navigation: ask the puzzle to resolve/render, store the result.
   const navigate = useCallback((raw: string) => {
@@ -92,10 +95,8 @@ export function GameShell({
       idxRef.current = i;
       setIdx(i);
       resolverRef.current?.(history[i]);
-    } else {
-      onBack();
     }
-  }, [history, onBack]);
+  }, [history]);
 
   const goForward = useCallback(() => {
     if (idxRef.current < history.length - 1) {
@@ -106,12 +107,9 @@ export function GameShell({
     }
   }, [history]);
 
-  const setResolver = useCallback(
-    (fn: ((url: string) => string) | null) => {
-      resolverRef.current = fn;
-    },
-    [],
-  );
+  const setResolver = useCallback((fn: ((url: string) => string) | null) => {
+    resolverRef.current = fn;
+  }, []);
 
   const setNetwork = useCallback((reqs: NetworkRequest[] | null) => {
     setNetworkState(reqs);
@@ -160,99 +158,103 @@ export function GameShell({
   }, []);
 
   const Site = puzzle.Site;
+  const modalOpen = devtoolsOpen || revealOpen;
+
+  useEffect(
+    () => () => {
+      if (noteTimer.current) clearTimeout(noteTimer.current);
+      if (notifTimer.current) clearTimeout(notifTimer.current);
+    },
+    [],
+  );
 
   return (
-    <View className="flex-1 bg-slate-950" style={{ paddingTop: insets.top }}>
-      <BrowserChrome
-        url={url}
-        editable={puzzle.editableUrl ?? false}
-        onGo={navigate}
-        onBack={goBack}
-        onForward={goForward}
-        canForward={idx < history.length - 1}
-        onMenu={() => setMenuOpen(true)}
-        showBell={!!lastNotification}
-        onBell={() => showNotification(lastNotification!)}
-      />
-      <GoalBanner
-        question={puzzle.question}
-        hints={puzzle.hints}
-        shown={hintsShown}
-        onToggle={() => setHintsShown((n) => (n === 0 ? 1 : 0))}
-        onMore={() => setHintsShown((n) => Math.min(hintCount, n + 1))}
-      />
+    <View className="flex-1 bg-[#08090b]" style={{ paddingTop: insets.top }}>
+      <View
+        className="flex-1"
+        accessibilityElementsHidden={modalOpen}
+        importantForAccessibility={modalOpen ? "no-hide-descendants" : "auto"}
+        aria-hidden={modalOpen}
+      >
+        <BrowserChrome
+          url={url}
+          editable={puzzle.editableUrl ?? false}
+          onGo={navigate}
+          onBack={goBack}
+          onForward={goForward}
+          canBack={idx > 0}
+          canForward={idx < history.length - 1}
+          onExit={onBack}
+          onTools={() => {
+            setNotifVisible(false);
+            setDevtoolsOpen(true);
+          }}
+          showBell={!!lastNotification}
+          onBell={() => showNotification(lastNotification!)}
+        />
+        <GoalBanner
+          question={puzzle.question}
+          hints={puzzle.hints}
+          shown={hintsShown}
+          onToggle={() => setHintsShown((n) => (n === 0 ? 1 : 0))}
+          onMore={() => setHintsShown((n) => Math.min(hintCount, n + 1))}
+        />
 
-      <View className="flex-1">
-        <Site game={game} />
+        <View className="flex-1">
+          <Site game={game} />
+        </View>
+
+        {note ? <Toast message={note} /> : null}
+
+        {solved && ribbonVisible ? (
+          <SuccessRibbon
+            message={successMessage}
+            onExplain={openReveal}
+            onDismiss={() => setRibbonVisible(false)}
+          />
+        ) : null}
+
+        {solved && !ribbonVisible && !revealOpen ? (
+          <ReopenPill onPress={() => setRevealOpen(true)} />
+        ) : null}
+
+        <PushNotification
+          config={lastNotification}
+          visible={notifVisible && !modalOpen}
+          onDismiss={() => setNotifVisible(false)}
+        />
       </View>
 
-      {note ? <Toast message={note} /> : null}
-
-      {solved && ribbonVisible ? (
-        <SuccessRibbon
-          message={puzzle.successMessage ?? "🔓 Nice — you just broke it."}
-          onExplain={openReveal}
-          onDismiss={() => setRibbonVisible(false)}
-        />
-      ) : null}
-
-      {solved && !ribbonVisible && !revealOpen ? (
-        <ReopenPill onPress={() => setRevealOpen(true)} />
-      ) : null}
-
-      <PushNotification
-        config={lastNotification}
-        visible={notifVisible}
-        onDismiss={() => setNotifVisible(false)}
-      />
-
-      {/* ⋮ browser menu */}
-      {menuOpen ? (
-        <View className="absolute inset-0" style={{ zIndex: 25 }}>
-          <Pressable
-            className="absolute inset-0"
-            onPress={() => setMenuOpen(false)}
-          />
-          <View
-            style={{ top: insets.top + 48 }}
-            className="absolute right-2 w-56 overflow-hidden rounded-xl border border-slate-700 bg-slate-800 shadow-lg"
-          >
-            <Pressable
-              onPress={() => {
-                setMenuOpen(false);
-                setDevtoolsOpen(true);
-              }}
-              className="flex-row items-center gap-3 border-b border-slate-700 px-4 py-3 active:bg-slate-700"
-            >
-              <Ionicons name="build-outline" size={17} color="#e2e8f0" />
-              <Text className="text-[15px] text-slate-100">Developer Tools</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => {
-                setMenuOpen(false);
-                onBack();
-              }}
-              className="flex-row items-center gap-3 px-4 py-3 active:bg-slate-700"
-            >
-              <Ionicons name="exit-outline" size={17} color="#e2e8f0" />
-              <Text className="text-[15px] text-slate-100">Exit to OneFlaw</Text>
-            </Pressable>
-          </View>
-        </View>
-      ) : null}
-
       {devtoolsOpen ? (
-        <DevToolsPanel
-          requests={network ?? []}
-          onClose={() => setDevtoolsOpen(false)}
-        />
+        <Modal
+          transparent
+          statusBarTranslucent
+          animationType="none"
+          presentationStyle="overFullScreen"
+          onRequestClose={() => setDevtoolsOpen(false)}
+        >
+          <DevToolsPanel
+            requests={network ?? []}
+            onClose={() => setDevtoolsOpen(false)}
+          />
+        </Modal>
       ) : null}
 
-      <RevealCard
-        visible={revealOpen}
-        reveal={puzzle.reveal}
-        onClose={() => setRevealOpen(false)}
-      />
+      {revealOpen ? (
+        <Modal
+          transparent
+          statusBarTranslucent
+          animationType="none"
+          presentationStyle="overFullScreen"
+          onRequestClose={() => setRevealOpen(false)}
+        >
+          <RevealCard
+            visible
+            reveal={puzzle.reveal}
+            onClose={() => setRevealOpen(false)}
+          />
+        </Modal>
+      ) : null}
     </View>
   );
 }

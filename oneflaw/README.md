@@ -44,4 +44,4 @@ Progress (solved ✓ badges) is stored locally on the device.
 - `app/` — screens (expo-router): dashboard and the `play/[id]` game screen
 - `puzzles/` — one folder per level, plus `registry.ts` that lists them
 - `components/game/` — the fake in-app "browser" shell and game UI
-- `lib/storage.ts` — the only persistence: solved-puzzle ids in AsyncStorage
+- `lib/storage.ts` — local solved-puzzle progress and onboarding state in AsyncStorage
