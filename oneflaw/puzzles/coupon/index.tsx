@@ -109,19 +109,23 @@ function CouponSite({ game }: { game: GameCtx }) {
       <View className="flex-row gap-2">
         <TextInput
           value={code}
+          accessibilityLabel="Discount code"
+          accessibilityHint="Enter the code from the training notification"
           onChangeText={setCode}
           placeholder="Enter code"
           placeholderTextColor="#94a3b8"
           autoCapitalize="characters"
           autoCorrect={false}
           onSubmitEditing={apply}
-          className="flex-1 rounded-xl border border-slate-300 px-4 py-3 font-mono text-[15px] text-slate-800"
+          className="min-h-12 flex-1 rounded-xl border border-slate-300 px-4 font-mono text-[15px] text-slate-800"
         />
         <Pressable
           onPress={apply}
-          className="flex-row items-center gap-1.5 rounded-xl bg-slate-900 px-5 active:bg-slate-700"
+          accessibilityRole="button"
+          accessibilityLabel="Apply discount code"
+          className="min-h-12 flex-row items-center gap-1.5 rounded-xl bg-slate-900 px-5 active:bg-slate-700"
         >
-          <Ionicons name="pricetag" size={15} color="#22e07a" />
+          <Ionicons name="pricetag" size={15} color="#789f90" />
           <Text className="font-semibold text-white">Apply</Text>
         </Pressable>
       </View>
@@ -129,6 +133,7 @@ function CouponSite({ game }: { game: GameCtx }) {
       {/* Prominent feedback banner */}
       {banner ? (
         <View
+          accessibilityLiveRegion="polite"
           className={`mt-4 flex-row items-center gap-3 rounded-2xl p-4 ${
             banner.kind === "success" ? "bg-emerald-50" : "bg-red-50"
           }`}
@@ -138,7 +143,7 @@ function CouponSite({ game }: { game: GameCtx }) {
               banner.kind === "success" ? "checkmark-circle" : "alert-circle"
             }
             size={22}
-            color={banner.kind === "success" ? "#12b862" : "#dc2626"}
+            color={banner.kind === "success" ? "#526f62" : "#dc2626"}
           />
           <Text
             className={`flex-1 text-[15px] font-semibold ${
@@ -188,6 +193,6 @@ export const couponPuzzle: Puzzle = {
     howToPrevent:
       "Enforce one-use-per-account on the server and record every redemption. Recompute the final total server-side before charging.",
     realIncident:
-      "Discount and coupon abuse is widely reported — bug-bounty write-ups describe unlimited-stacking codes and redemption bugs with six-figure estimated losses.",
+      "Stripe: a one-time $20,000 fee discount could be accepted again by sending many requests at once. A researcher responsibly repeated it 30 times on his own account, demonstrating $600,000 in fee-free processing. Stripe fixed the race condition.",
   },
 };

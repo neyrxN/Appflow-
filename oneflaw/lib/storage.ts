@@ -1,8 +1,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-// The ONLY persistence in the app: which puzzles the player has solved, so the
-// dashboard can show a ✓. No streaks, no dates, no scores.
+// Local persistence is intentionally small: solved puzzle IDs plus whether the
+// player has dismissed the first-run introduction. No streaks, dates or scores.
 const SOLVED_KEY = "oneflaw:solved";
+const ONBOARDING_SEEN_KEY = "oneflaw:onboarding-seen";
 
 export async function getSolved(): Promise<string[]> {
   try {
@@ -23,4 +24,20 @@ export async function markSolved(id: string): Promise<string[]> {
     // best-effort; a failed write just means no ✓ badge this session
   }
   return next;
+}
+
+export async function getOnboardingSeen(): Promise<boolean> {
+  try {
+    return (await AsyncStorage.getItem(ONBOARDING_SEEN_KEY)) === "true";
+  } catch {
+    return false;
+  }
+}
+
+export async function markOnboardingSeen(): Promise<void> {
+  try {
+    await AsyncStorage.setItem(ONBOARDING_SEEN_KEY, "true");
+  } catch {
+    // Best-effort, like solved progress. Failure only replays onboarding later.
+  }
 }

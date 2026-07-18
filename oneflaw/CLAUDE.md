@@ -18,12 +18,14 @@ coupon stacking, hidden admin toggle). The player pokes at a fake in-app
   (see `puzzles/types.ts`); `puzzles/registry.ts` is the single list of levels
 - `components/game/` — shared game chrome: `GameShell`, `BrowserChrome`,
   `RevealCard`, toasts/banners
-- `lib/storage.ts` — the ONLY persistence: solved puzzle ids in AsyncStorage.
-  There is intentionally no backend, no env vars, and no network I/O.
+- `lib/storage.ts` — local persistence for solved puzzle ids and the first-run
+  introduction flag. There is intentionally no backend, no env vars, and no
+  network I/O.
 
 ## Conventions
 
 - Run `npx tsc --noEmit` and `npm run lint` before considering work done.
 - Keep puzzles fictional and self-contained; a new level = new folder in
   `puzzles/` + an entry in `registry.ts`, nothing else.
-- Dark UI, accent green `#22e07a` (`text-accent` etc. from the Tailwind theme).
+- Calm dark-neutral UI with one muted sage accent `#789f90` (`text-accent`
+  etc. from the Tailwind theme). Avoid neon, glow, and ultraviolet effects.

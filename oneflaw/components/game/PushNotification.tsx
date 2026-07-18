@@ -1,20 +1,15 @@
 import { useEffect } from "react";
-import { Pressable, Text, View } from "react-native";
+import { AccessibilityInfo, Platform, Pressable, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, {
   useAnimatedStyle,
+  useReducedMotion,
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-
 import type { NotificationConfig } from "@/puzzles/types";
 
-/**
- * A phone-style push banner that slides in from the top. The shell controls how
- * long it stays; the bell in the chrome can re-open the last one, so the code
- * inside it never has to live in a static tip.
- */
+/** A replayable training notification; the shell owns its display timer. */
 export function PushNotification({
   config,
   visible,
@@ -24,41 +19,99 @@ export function PushNotification({
   visible: boolean;
   onDismiss: () => void;
 }) {
-  const insets = useSafeAreaInsets();
-  const y = useSharedValue(-200);
+  const reduceMotion = useReducedMotion();
+  const y = useSharedValue(-220);
 
   useEffect(() => {
-    y.value = withTiming(visible ? 0 : -200, { duration: 320 });
-  }, [visible, y]);
+    y.value = withTiming(visible ? 0 : -220, {
+      duration: reduceMotion ? 0 : 240,
+    });
 
-  const style = useAnimatedStyle(() => ({
+    // Android and web consume the live region below. VoiceOver needs an
+    // explicit announcement because this banner does not take focus.
+    if (visible && config && Platform.OS === "ios") {
+      AccessibilityInfo.announceForAccessibility(
+        `${config.title}. ${config.body}`,
+      );
+    }
+  }, [config, reduceMotion, visible, y]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: y.value }],
   }));
 
-  if (!config) return null;
+  // Unmounting the dismissed banner keeps offscreen notification content out
+  // of VoiceOver, TalkBack, and keyboard navigation.
+  if (!config || !visible) return null;
 
   return (
-    <Animated.View
-      pointerEvents={visible ? "auto" : "none"}
-      style={[style, { paddingTop: insets.top + 8 }]}
-      className="absolute left-0 right-0 top-0 z-40 px-3"
+    <View
+      style={{
+        pointerEvents: "box-none",
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 40,
+        paddingTop: 8,
+        paddingHorizontal: 12,
+      }}
     >
-      <Pressable
-        onPress={onDismiss}
-        className="flex-row items-center gap-3 rounded-2xl bg-slate-800/95 px-4 py-3 shadow-lg"
-      >
-        <View className="h-9 w-9 items-center justify-center rounded-xl bg-accent">
-          <Ionicons name="pricetag" size={18} color="#0b0f14" />
+      <Animated.View style={animatedStyle}>
+        {/* Static wrapper owns layout/background so NativeWind web interop is
+            not required on a Reanimated component. */}
+        <View
+          accessibilityLiveRegion="polite"
+          style={{
+            minHeight: 72,
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 12,
+            borderWidth: 1,
+            borderColor: "#475569",
+            borderRadius: 16,
+            backgroundColor: "rgba(30, 41, 59, 0.98)",
+            paddingLeft: 12,
+            paddingVertical: 10,
+            paddingRight: 6,
+            shadowColor: "#000000",
+            shadowOffset: { width: 0, height: 6 },
+            shadowOpacity: 0.28,
+            shadowRadius: 12,
+            elevation: 8,
+          }}
+        >
+          <View className="h-10 w-10 items-center justify-center rounded-xl bg-[#789f90]">
+            <Ionicons
+              name="pricetag"
+              size={18}
+              color="#0b0f14"
+              accessible={false}
+            />
+          </View>
+          <View className="min-w-0 flex-1">
+            <Text className="text-[15px] font-bold leading-5 text-white">
+              {config.title}
+            </Text>
+            <Text className="text-[14px] leading-5 text-slate-200">
+              {config.body}
+            </Text>
+          </View>
+          <Pressable
+            onPress={onDismiss}
+            accessibilityRole="button"
+            accessibilityLabel="Dismiss notification"
+            className="h-12 w-12 items-center justify-center rounded-xl active:bg-slate-700"
+          >
+            <Ionicons
+              name="close"
+              size={20}
+              color="#cbd5e1"
+              accessible={false}
+            />
+          </Pressable>
         </View>
-        <View className="flex-1">
-          <Text className="text-[13px] font-bold text-white">
-            {config.title}
-          </Text>
-          <Text className="text-[12px] leading-4 text-slate-300">
-            {config.body}
-          </Text>
-        </View>
-      </Pressable>
-    </Animated.View>
+      </Animated.View>
+    </View>
   );
 }
