@@ -2,11 +2,12 @@ import { useEffect, useState } from "react";
 import { Pressable, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
+import { C, LiveDot } from "./fx";
+
 /**
- * OneFlaw's simulated browser frame — visually distinct from the fictional
- * website rendered inside it. Provides back/forward, an address field with a
- * visible Go action, an optional notification bell, and a ⋮ menu (which the
- * shell turns into Developer Tools + Exit).
+ * OneFlaw's simulated command bar — the cool, premium chrome that wraps every
+ * fictional site. Back/forward, a mono address pill with a live connection dot,
+ * an optional notification bell, and a ⋮ menu (Developer Tools + Exit).
  */
 export function BrowserChrome({
   url,
@@ -29,36 +30,36 @@ export function BrowserChrome({
   showBell?: boolean;
   onBell?: () => void;
 }) {
-  // Local editing buffer: typed text is preserved until the player presses Go,
-  // and only re-synced when the committed URL changes (back/forward/link nav).
+  // Typed text is preserved until Go, then re-synced on committed URL changes.
   const [draft, setDraft] = useState(url);
   useEffect(() => setDraft(url), [url]);
 
   return (
-    <View className="bg-slate-800 px-2 py-2">
-      <View className="flex-row items-center gap-1">
-        <Pressable
-          onPress={onBack}
-          hitSlop={8}
-          className="h-9 w-8 items-center justify-center rounded-full active:bg-slate-700"
-        >
-          <Ionicons name="chevron-back" size={22} color="#e2e8f0" />
-        </Pressable>
-        <Pressable
+    <View
+      className="px-2.5 pb-3 pt-2"
+      style={{
+        backgroundColor: C.panel2,
+        borderBottomWidth: 1,
+        borderBottomColor: C.line,
+      }}
+    >
+      <View className="flex-row items-center gap-1.5">
+        <NavBtn icon="chevron-back" onPress={onBack} />
+        <NavBtn
+          icon="chevron-forward"
           onPress={onForward}
           disabled={!canForward}
-          hitSlop={8}
-          className="h-9 w-8 items-center justify-center rounded-full active:bg-slate-700"
-        >
-          <Ionicons
-            name="chevron-forward"
-            size={22}
-            color={canForward ? "#e2e8f0" : "#475569"}
-          />
-        </Pressable>
+        />
 
-        <View className="ml-1 flex-1 flex-row items-center rounded-full bg-slate-100 px-3">
-          <Ionicons name="lock-closed" size={12} color="#64748b" />
+        <View
+          className="ml-0.5 h-8 flex-1 flex-row items-center gap-2 rounded-[9px] px-3"
+          style={{
+            backgroundColor: "rgba(0,0,0,0.35)",
+            borderWidth: 1,
+            borderColor: C.line2,
+          }}
+        >
+          <Ionicons name="lock-closed" size={11} color={C.good} />
           <TextInput
             value={draft}
             editable={editable}
@@ -72,29 +73,37 @@ export function BrowserChrome({
             returnKeyType="go"
             submitBehavior="blurAndSubmit"
             selectTextOnFocus
-            className="ml-1.5 flex-1 py-1.5 font-mono text-[13px] text-slate-800"
-            style={{ paddingVertical: 0 }}
+            className="flex-1 font-mono text-[12px]"
+            style={{ color: C.dim, paddingVertical: 0 }}
           />
+          <LiveDot size={6} />
         </View>
 
-        {showBell ? (
-          <Pressable
-            onPress={onBell}
-            hitSlop={8}
-            className="h-9 w-8 items-center justify-center rounded-full active:bg-slate-700"
-          >
-            <Ionicons name="notifications" size={17} color="#e2e8f0" />
-          </Pressable>
-        ) : null}
-
-        <Pressable
-          onPress={onMenu}
-          hitSlop={8}
-          className="h-9 w-8 items-center justify-center rounded-full active:bg-slate-700"
-        >
-          <Ionicons name="ellipsis-vertical" size={18} color="#e2e8f0" />
-        </Pressable>
+        {showBell ? <NavBtn icon="notifications" onPress={onBell} /> : null}
+        <NavBtn icon="ellipsis-vertical" onPress={onMenu} />
       </View>
     </View>
+  );
+}
+
+function NavBtn({
+  icon,
+  onPress,
+  disabled,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  onPress?: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      hitSlop={6}
+      className="h-8 w-8 items-center justify-center rounded-lg active:opacity-70"
+      style={{ borderWidth: 1, borderColor: C.line, backgroundColor: "rgba(255,255,255,0.02)" }}
+    >
+      <Ionicons name={icon} size={16} color={disabled ? C.faint : C.dim} />
+    </Pressable>
   );
 }

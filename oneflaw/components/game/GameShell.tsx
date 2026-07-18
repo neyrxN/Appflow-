@@ -17,6 +17,7 @@ import { Toast } from "./Toast";
 import { ReopenPill, SuccessRibbon } from "./SuccessRibbon";
 import { DevToolsPanel } from "./DevToolsPanel";
 import { PushNotification } from "./PushNotification";
+import { C } from "./fx";
 
 const NOTIF_MS = 4200;
 
@@ -162,7 +163,7 @@ export function GameShell({
   const Site = puzzle.Site;
 
   return (
-    <View className="flex-1 bg-slate-950" style={{ paddingTop: insets.top }}>
+    <View className="flex-1" style={{ paddingTop: insets.top, backgroundColor: C.void }}>
       <BrowserChrome
         url={url}
         editable={puzzle.editableUrl ?? false}
@@ -214,28 +215,34 @@ export function GameShell({
             onPress={() => setMenuOpen(false)}
           />
           <View
-            style={{ top: insets.top + 48 }}
-            className="absolute right-2 w-56 overflow-hidden rounded-xl border border-slate-700 bg-slate-800 shadow-lg"
+            style={{
+              top: insets.top + 48,
+              backgroundColor: C.panel2,
+              borderWidth: 1,
+              borderColor: C.line2,
+            }}
+            className="absolute right-2 w-60 overflow-hidden rounded-xl shadow-lg"
           >
             <Pressable
               onPress={() => {
                 setMenuOpen(false);
                 setDevtoolsOpen(true);
               }}
-              className="flex-row items-center gap-3 border-b border-slate-700 px-4 py-3 active:bg-slate-700"
+              style={{ borderBottomWidth: 1, borderBottomColor: C.line }}
+              className="flex-row items-center gap-3 px-4 py-3.5 active:opacity-70"
             >
-              <Ionicons name="build-outline" size={17} color="#e2e8f0" />
-              <Text className="text-[15px] text-slate-100">Developer Tools</Text>
+              <Ionicons name="pulse" size={17} color={C.cyan} />
+              <Text className="text-[15px] text-ice">Developer Tools</Text>
             </Pressable>
             <Pressable
               onPress={() => {
                 setMenuOpen(false);
                 onBack();
               }}
-              className="flex-row items-center gap-3 px-4 py-3 active:bg-slate-700"
+              className="flex-row items-center gap-3 px-4 py-3.5 active:opacity-70"
             >
-              <Ionicons name="exit-outline" size={17} color="#e2e8f0" />
-              <Text className="text-[15px] text-slate-100">Exit to OneFlaw</Text>
+              <Ionicons name="exit-outline" size={17} color={C.muted} />
+              <Text className="text-[15px] text-ice">Exit to OneFlaw</Text>
             </Pressable>
           </View>
         </View>

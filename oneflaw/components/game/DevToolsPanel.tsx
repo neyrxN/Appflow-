@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -10,6 +10,7 @@ import {
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -18,26 +19,93 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { NetworkRequest } from "@/puzzles/types";
+import { C, COOL, Scanline } from "./fx";
 
 const methodColor: Record<string, string> = {
-  GET: "#38bdf8",
-  POST: "#22e07a",
-  PUT: "#eab308",
-  DELETE: "#f87171",
+  GET: C.cyan,
+  POST: C.good,
+  PUT: C.warn,
+  DELETE: C.flaw,
 };
+
+function statusColor(status: number): string {
+  if (status >= 200 && status < 300) return C.good;
+  if (status >= 300 && status < 400) return C.warn;
+  return C.flaw;
+}
+
+/** Rough waterfall width from a "163 ms" style timing string (0–1). */
+function timeFraction(time?: string): number {
+  const n = time ? parseInt(time, 10) : NaN;
+  if (Number.isNaN(n)) return 0.25;
+  return Math.max(0.08, Math.min(1, n / 260));
+}
 
 // Real DevTools panel tabs — only Network is interactive here.
 const PANEL_TABS = ["Elements", "Console", "Network", "Sources", "Performance"];
 
-/** Read-only pretty JSON (handles nested objects/arrays); selectable to copy. */
+/* ---------- syntax-highlighted JSON ---------- */
+
+function JsonNode({ value, indent }: { value: unknown; indent: number }): ReactNode {
+  const pad = "  ".repeat(indent);
+  const pad1 = "  ".repeat(indent + 1);
+
+  if (Array.isArray(value)) {
+    if (value.length === 0) return <Text style={{ color: C.dim }}>[]</Text>;
+    return (
+      <Text style={{ color: C.dim }}>
+        {"[\n"}
+        {value.map((v, i) => (
+          <Text key={i}>
+            {pad1}
+            <JsonNode value={v} indent={indent + 1} />
+            {i < value.length - 1 ? "," : ""}
+            {"\n"}
+          </Text>
+        ))}
+        {pad + "]"}
+      </Text>
+    );
+  }
+  if (value && typeof value === "object") {
+    const entries = Object.entries(value as Record<string, unknown>);
+    return (
+      <Text style={{ color: C.dim }}>
+        {"{\n"}
+        {entries.map(([k, v], i) => (
+          <Text key={k}>
+            {pad1}
+            <Text style={{ color: "#8EA2C9" }}>{`"${k}"`}</Text>
+            {": "}
+            <JsonNode value={v} indent={indent + 1} />
+            {i < entries.length - 1 ? "," : ""}
+            {"\n"}
+          </Text>
+        ))}
+        {pad + "}"}
+      </Text>
+    );
+  }
+  if (typeof value === "string")
+    return <Text style={{ color: "#9BE7C4" }}>{`"${value}"`}</Text>;
+  if (typeof value === "number" || typeof value === "boolean")
+    return <Text style={{ color: C.warn }}>{String(value)}</Text>;
+  return <Text style={{ color: C.muted }}>null</Text>;
+}
+
 function Json({ value }: { value: unknown }) {
   return (
-    <View className="rounded-xl bg-black/40 p-4">
-      <Text
-        selectable
-        className="font-mono text-[12.5px] leading-5 text-slate-200"
-      >
-        {JSON.stringify(value, null, 2)}
+    <View
+      style={{
+        borderRadius: 12,
+        backgroundColor: "#05060A",
+        borderWidth: 1,
+        borderColor: C.line,
+        padding: 13,
+      }}
+    >
+      <Text selectable className="font-mono text-[11.5px] leading-5">
+        <JsonNode value={value} indent={0} />
       </Text>
     </View>
   );
@@ -87,7 +155,7 @@ function RequestDetail({ request }: { request: NetworkRequest }) {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={0}
       className="flex-1"
     >
@@ -95,31 +163,44 @@ function RequestDetail({ request }: { request: NetworkRequest }) {
       <View className="flex-row items-center gap-2 px-4 py-2.5">
         <Text
           className="font-mono text-[11px] font-bold"
-          style={{ color: methodColor[request.method] ?? "#94a3b8" }}
+          style={{ color: methodColor[request.method] ?? C.muted }}
         >
           {request.method}
         </Text>
         <Text
-          className="flex-1 font-mono text-[12px] text-slate-300"
+          className="flex-1 font-mono text-[12px]"
+          style={{ color: C.dim }}
           numberOfLines={1}
         >
           {request.path}
         </Text>
-        <Text className="text-[11px] text-emerald-400">{request.status}</Text>
+        <Text
+          className="font-mono text-[11px]"
+          style={{ color: statusColor(request.status) }}
+        >
+          {request.status}
+        </Text>
       </View>
 
       {/* Sub-tabs */}
-      <View className="flex-row border-b border-slate-800 px-2">
+      <View
+        className="flex-row px-2"
+        style={{ borderBottomWidth: 1, borderBottomColor: C.line }}
+      >
         {subTabs.map((t) => (
           <Pressable
             key={t}
             onPress={() => setTab(t)}
-            className={`px-3 py-2 ${tab === t ? "border-b-2 border-accent" : ""}`}
+            className="px-3 py-2"
+            style={
+              tab === t
+                ? { borderBottomWidth: 2, borderBottomColor: C.cyan }
+                : undefined
+            }
           >
             <Text
-              className={`text-[13px] capitalize ${
-                tab === t ? "font-semibold text-accent" : "text-slate-400"
-              }`}
+              className="text-[13px] font-semibold capitalize"
+              style={{ color: tab === t ? C.cyan : C.muted }}
             >
               {t}
             </Text>
@@ -132,18 +213,15 @@ function RequestDetail({ request }: { request: NetworkRequest }) {
           className="px-4"
           contentContainerStyle={{ paddingVertical: 14, paddingBottom: insets.bottom + 20 }}
         >
-          <Text className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-            General
-          </Text>
-          <View className="mb-4 rounded-xl bg-black/40 p-4">
+          <SubLabel>General</SubLabel>
+          <View style={panelBox}>
             <HeaderLine k="Request URL" v={`https://${request.path}`} />
             <HeaderLine k="Request Method" v={request.method} />
             <HeaderLine k="Status Code" v={`${request.status}`} />
           </View>
-          <Text className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-            Request Headers
-          </Text>
-          <View className="rounded-xl bg-black/40 p-4">
+          <View style={{ height: 16 }} />
+          <SubLabel>Request Headers</SubLabel>
+          <View style={panelBox}>
             {Object.entries(request.reqHeaders ?? DEFAULT_HEADERS).map(
               ([k, v]) => (
                 <HeaderLine key={k} k={k} v={v} />
@@ -161,9 +239,7 @@ function RequestDetail({ request }: { request: NetworkRequest }) {
               keyboardShouldPersistTaps="handled"
               contentContainerStyle={{ paddingVertical: 14 }}
             >
-              <Text className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                Request Payload · editable
-              </Text>
+              <SubLabel tint={C.cyan}>Request Payload · editable</SubLabel>
               <TextInput
                 value={editText}
                 onChangeText={(t) => {
@@ -177,31 +253,61 @@ function RequestDetail({ request }: { request: NetworkRequest }) {
                 keyboardType={
                   Platform.OS === "ios" ? "ascii-capable" : "visible-password"
                 }
-                className="rounded-xl bg-black/40 p-4 font-mono text-[12.5px] leading-5 text-accent"
-                style={{ minHeight: 180, textAlignVertical: "top" }}
+                className="font-mono text-[12.5px] leading-5"
+                style={{
+                  borderRadius: 12,
+                  backgroundColor: "#05060A",
+                  borderWidth: 1,
+                  borderColor: C.line2,
+                  padding: 13,
+                  color: C.cyan,
+                  minHeight: 180,
+                  textAlignVertical: "top",
+                }}
               />
               {error ? (
-                <Text className="mt-2 text-[13px] text-red-400">{error}</Text>
+                <Text className="mt-2 text-[13px]" style={{ color: C.flaw }}>
+                  {error}
+                </Text>
               ) : (
-                <Text className="mt-2 text-[13px] text-slate-500">
+                <Text className="mt-2 text-[13px]" style={{ color: C.muted }}>
                   This is what your browser is about to send. Change any value,
                   then re-send it.
                 </Text>
               )}
             </ScrollView>
-            <View className="flex-row gap-3 border-t border-slate-800 px-4 py-3">
+            <View
+              className="flex-row gap-3 px-4 py-3"
+              style={{ borderTopWidth: 1, borderTopColor: C.line }}
+            >
               <Pressable
                 onPress={cancel}
-                className="flex-1 items-center justify-center rounded-xl border border-slate-700 py-3.5 active:bg-slate-800"
+                className="flex-1 items-center justify-center rounded-xl py-3.5 active:opacity-70"
+                style={{ borderWidth: 1, borderColor: C.line2 }}
               >
-                <Text className="font-semibold text-slate-200">Cancel</Text>
+                <Text className="font-semibold" style={{ color: C.dim }}>
+                  Cancel
+                </Text>
               </Pressable>
-              <Pressable
-                onPress={resend}
-                className="flex-[1.5] flex-row items-center justify-center gap-2 rounded-xl bg-accent py-3.5 active:bg-accent-dark"
-              >
-                <Ionicons name="paper-plane" size={16} color="#0b0f14" />
-                <Text className="font-bold text-ink">Edit and Resend</Text>
+              <Pressable onPress={resend} className="flex-[1.5] active:opacity-90">
+                <LinearGradient
+                  colors={COOL}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                    borderRadius: 12,
+                    paddingVertical: 14,
+                  }}
+                >
+                  <Ionicons name="paper-plane" size={16} color={C.void} />
+                  <Text className="font-bold" style={{ color: C.void }}>
+                    Edit and Resend
+                  </Text>
+                </LinearGradient>
               </Pressable>
             </View>
           </>
@@ -210,7 +316,7 @@ function RequestDetail({ request }: { request: NetworkRequest }) {
             className="px-4"
             contentContainerStyle={{ paddingVertical: 14, paddingBottom: insets.bottom + 20 }}
           >
-            <Text className="text-sm text-slate-500">
+            <Text className="text-sm" style={{ color: C.muted }}>
               This request has no payload.
             </Text>
           </ScrollView>
@@ -222,25 +328,19 @@ function RequestDetail({ request }: { request: NetworkRequest }) {
           className="px-4"
           contentContainerStyle={{ paddingVertical: 14, paddingBottom: insets.bottom + 20 }}
         >
-          {resent ? (
-            <Text className="mb-2 text-xs font-semibold uppercase tracking-wide text-accent">
-              Response · re-sent
-            </Text>
-          ) : (
-            <Text className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Response
-            </Text>
-          )}
+          <SubLabel tint={resent ? C.cyan : undefined}>
+            {resent ? "Response · re-sent" : "Response"}
+          </SubLabel>
           {resp !== null && resp !== undefined ? (
             <Json value={resp} />
           ) : request.responseNote ? (
-            <View className="rounded-xl bg-black/40 p-4">
-              <Text className="font-mono text-[13px] text-slate-400">
+            <View style={panelBox}>
+              <Text className="font-mono text-[13px]" style={{ color: C.muted }}>
                 {request.responseNote}
               </Text>
             </View>
           ) : (
-            <Text className="text-sm text-slate-500">
+            <Text className="text-sm" style={{ color: C.muted }}>
               {editable
                 ? "Re-send the request to see the response."
                 : "(no body)"}
@@ -252,17 +352,40 @@ function RequestDetail({ request }: { request: NetworkRequest }) {
   );
 }
 
+const panelBox = {
+  borderRadius: 12,
+  backgroundColor: "#05060A",
+  borderWidth: 1,
+  borderColor: C.line,
+  padding: 13,
+} as const;
+
 const DEFAULT_HEADERS: Record<string, string> = {
   accept: "application/json",
   "content-type": "application/json",
   "user-agent": "Mozilla/5.0 (OneFlaw Browser)",
 };
 
+function SubLabel({ children, tint }: { children: ReactNode; tint?: string }) {
+  return (
+    <Text
+      className="mb-2 font-mono text-[10px] uppercase tracking-[2px]"
+      style={{ color: tint ?? C.muted }}
+    >
+      {children}
+    </Text>
+  );
+}
+
 function HeaderLine({ k, v }: { k: string; v: string }) {
   return (
     <View className="flex-row flex-wrap py-0.5">
-      <Text className="font-mono text-[12px] text-sky-300">{k}: </Text>
-      <Text className="font-mono text-[12px] text-slate-300">{v}</Text>
+      <Text className="font-mono text-[12px]" style={{ color: C.iris }}>
+        {k}:{" "}
+      </Text>
+      <Text className="font-mono text-[12px]" style={{ color: C.dim }}>
+        {v}
+      </Text>
     </View>
   );
 }
@@ -289,41 +412,64 @@ export function DevToolsPanel({
 
   return (
     <View className="absolute inset-0" style={{ zIndex: 30 }}>
-      <Pressable className="absolute inset-0 bg-black/50" onPress={onClose} />
+      <Pressable className="absolute inset-0 bg-black/60" onPress={onClose} />
       <Animated.View
-        style={[panelStyle, { paddingTop: insets.top + 6 }]}
-        className="absolute bottom-0 left-0 right-0 top-14 rounded-t-2xl bg-slate-900"
+        style={[
+          panelStyle,
+          { paddingTop: insets.top + 6, backgroundColor: C.void2 },
+        ]}
+        className="absolute bottom-0 left-0 right-0 top-14 overflow-hidden rounded-t-2xl"
       >
         {/* Header */}
-        <View className="flex-row items-center gap-2 px-4 pb-2 pt-1">
+        <View
+          className="flex-row items-center gap-2 px-4 pb-2.5 pt-1"
+          style={{ borderBottomWidth: 1, borderBottomColor: C.line }}
+        >
           {req ? (
             <Pressable onPress={() => setSelected(null)} hitSlop={8}>
-              <Ionicons name="chevron-back" size={20} color="#94a3b8" />
+              <Ionicons name="chevron-back" size={20} color={C.muted} />
             </Pressable>
           ) : (
-            <Ionicons name="build" size={15} color="#22e07a" />
+            <Ionicons name="pulse" size={16} color={C.cyan} />
           )}
-          <Text className="flex-1 text-[14px] font-bold text-white">
-            DevTools
+          <Text className="flex-1 font-mono text-[13px] tracking-wide text-ice">
+            NETWORK
           </Text>
+          {!req ? (
+            <View
+              className="rounded-full px-2.5 py-1"
+              style={{ borderWidth: 1, borderColor: C.line2 }}
+            >
+              <Text className="font-mono text-[10px]" style={{ color: C.muted }}>
+                {requests.length} requests
+              </Text>
+            </View>
+          ) : null}
           <Pressable onPress={onClose} hitSlop={8}>
-            <Ionicons name="close" size={20} color="#94a3b8" />
+            <Ionicons name="close" size={20} color={C.muted} />
           </Pressable>
         </View>
 
         {/* Panel tab row (only Network is interactive) */}
-        <View className="flex-row border-b border-slate-800 px-2">
+        <View
+          className="flex-row px-2"
+          style={{ borderBottomWidth: 1, borderBottomColor: C.line }}
+        >
           {PANEL_TABS.map((t) => {
             const active = t === "Network";
             return (
               <View
                 key={t}
-                className={`px-3 py-2 ${active ? "border-b-2 border-accent" : ""}`}
+                className="px-3 py-2"
+                style={
+                  active
+                    ? { borderBottomWidth: 2, borderBottomColor: C.cyan }
+                    : undefined
+                }
               >
                 <Text
-                  className={`text-[12px] ${
-                    active ? "font-semibold text-accent" : "text-slate-600"
-                  }`}
+                  className="font-mono text-[11px]"
+                  style={{ color: active ? C.cyan : C.faint }}
                 >
                   {t}
                 </Text>
@@ -335,54 +481,80 @@ export function DevToolsPanel({
         {req ? (
           <RequestDetail key={selected} request={req} />
         ) : (
-          <ScrollView
-            contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
-          >
-            {/* Column header */}
-            <View className="flex-row items-center gap-3 border-b border-slate-800 bg-slate-900 px-4 py-2">
-              <Text className="w-10 text-[10px] font-semibold uppercase text-slate-600">
-                Name
-              </Text>
-              <Text className="flex-1" />
-              <Text className="text-[10px] font-semibold uppercase text-slate-600">
-                Status
-              </Text>
-            </View>
-            {requests.length === 0 ? (
-              <Text className="px-5 pt-6 text-center text-sm text-slate-500">
-                No network activity captured.
-              </Text>
-            ) : (
-              requests.map((r, i) => (
-                <Pressable
-                  key={`${r.method}-${r.path}-${i}`}
-                  onPress={() => setSelected(i)}
-                  className="border-b border-slate-800 px-4 py-2.5 active:bg-slate-800"
+          <View className="flex-1">
+            <Scanline />
+            <ScrollView
+              contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
+            >
+              {requests.length === 0 ? (
+                <Text
+                  className="px-5 pt-6 text-center text-sm"
+                  style={{ color: C.muted }}
                 >
-                  <View className="flex-row items-center gap-3">
-                    <Text
-                      className="w-10 font-mono text-[10px] font-bold"
-                      style={{ color: methodColor[r.method] ?? "#94a3b8" }}
+                  No network activity captured.
+                </Text>
+              ) : (
+                requests.map((r, i) => {
+                  const frac = timeFraction(r.time);
+                  return (
+                    <Pressable
+                      key={`${r.method}-${r.path}-${i}`}
+                      onPress={() => setSelected(i)}
+                      className="px-4 py-2.5 active:opacity-70"
+                      style={{ borderBottomWidth: 1, borderBottomColor: "rgba(150,170,210,0.05)" }}
                     >
-                      {r.method}
-                    </Text>
-                    <Text
-                      className="flex-1 font-mono text-[13px] text-slate-200"
-                      numberOfLines={1}
-                    >
-                      {r.path}
-                    </Text>
-                    <Text className="text-[12px] text-emerald-400">
-                      {r.status}
-                    </Text>
-                  </View>
-                  <Text className="ml-[52px] mt-0.5 text-[11px] text-slate-500">
-                    {(r.type ?? "fetch") + " · " + (r.size ?? "—") + " · " + (r.time ?? "—")}
-                  </Text>
-                </Pressable>
-              ))
-            )}
-          </ScrollView>
+                      <View className="flex-row items-center gap-3">
+                        <Text
+                          className="w-10 font-mono text-[10px] font-bold"
+                          style={{ color: methodColor[r.method] ?? C.muted }}
+                        >
+                          {r.method}
+                        </Text>
+                        <Text
+                          className="flex-1 font-mono text-[12.5px]"
+                          style={{ color: C.ice }}
+                          numberOfLines={1}
+                        >
+                          {r.path}
+                        </Text>
+                        {/* waterfall */}
+                        <View
+                          style={{
+                            width: 44,
+                            height: 4,
+                            borderRadius: 2,
+                            backgroundColor: "rgba(255,255,255,0.06)",
+                            overflow: "hidden",
+                          }}
+                        >
+                          <View
+                            style={{
+                              height: 4,
+                              width: `${frac * 100}%`,
+                              borderRadius: 2,
+                              backgroundColor: methodColor[r.method] ?? C.muted,
+                            }}
+                          />
+                        </View>
+                        <Text
+                          className="w-8 text-right font-mono text-[11px]"
+                          style={{ color: statusColor(r.status) }}
+                        >
+                          {r.status}
+                        </Text>
+                      </View>
+                      <Text
+                        className="ml-[52px] mt-0.5 font-mono text-[10.5px]"
+                        style={{ color: C.faint }}
+                      >
+                        {(r.type ?? "fetch") + " · " + (r.size ?? "—") + " · " + (r.time ?? "—")}
+                      </Text>
+                    </Pressable>
+                  );
+                })
+              )}
+            </ScrollView>
+          </View>
         )}
       </Animated.View>
     </View>
