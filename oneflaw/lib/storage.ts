@@ -1,29 +1,25 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-// Local persistence is intentionally small: solved puzzle IDs plus whether the
-// player has dismissed the first-run introduction. No streaks, dates or scores.
-const SOLVED_KEY = "oneflaw:solved";
+// Persistence is intentionally minimal. Solved puzzle IDs are kept ONLY in
+// memory for the current session: completing a case shows a ✓ badge now, but
+// reloading the app clears every badge and you start fresh. The first-run
+// introduction flag is the one thing written to disk. No streaks, dates or
+// scores.
 const ONBOARDING_SEEN_KEY = "oneflaw:onboarding-seen";
 
+// Session-scoped list of solved puzzle IDs. This module-level state resets on
+// every app reload, which is exactly why the ✓ ticks disappear on restart.
+let sessionSolved: string[] = [];
+
 export async function getSolved(): Promise<string[]> {
-  try {
-    const raw = await AsyncStorage.getItem(SOLVED_KEY);
-    return raw ? (JSON.parse(raw) as string[]) : [];
-  } catch {
-    return [];
-  }
+  return [...sessionSolved];
 }
 
 export async function markSolved(id: string): Promise<string[]> {
-  const current = await getSolved();
-  if (current.includes(id)) return current;
-  const next = [...current, id];
-  try {
-    await AsyncStorage.setItem(SOLVED_KEY, JSON.stringify(next));
-  } catch {
-    // best-effort; a failed write just means no ✓ badge this session
+  if (!sessionSolved.includes(id)) {
+    sessionSolved = [...sessionSolved, id];
   }
-  return next;
+  return [...sessionSolved];
 }
 
 export async function getOnboardingSeen(): Promise<boolean> {

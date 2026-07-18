@@ -6,7 +6,7 @@ import type { GameCtx, Puzzle } from "@/puzzles/types";
 
 const START_PENCE = 3000; // £30.00
 const WIN_UNDER_PENCE = 2000; // must drop below £20.00
-const COUPON = "SLICE20";
+const COUPON = "READ20";
 
 const money = (pence: number) => `£${(pence / 100).toFixed(2)}`;
 
@@ -62,15 +62,15 @@ function CouponSite({ game }: { game: GameCtx }) {
       keyboardShouldPersistTaps="handled"
     >
       <View className="mb-5 flex-row items-center gap-2">
-        <Text className="text-2xl">🍕</Text>
-        <Text className="text-xl font-extrabold text-slate-900">Slice & Co.</Text>
+        <Text className="text-2xl">📚</Text>
+        <Text className="text-xl font-extrabold text-slate-900">Marginalia</Text>
         <Text className="ml-auto text-sm text-slate-500">Checkout</Text>
       </View>
 
       {/* Cart */}
       <View className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-        <CartLine label="Large Pepperoni" value="£24.99" />
-        <CartLine label="Garlic Bread" value="£5.01" />
+        <CartLine label="Hardback Novel" value="£24.99" />
+        <CartLine label="Cloth Bookmark" value="£5.01" />
 
         {applied > 0 ? (
           <View className="mt-1 border-t border-dashed border-slate-300 pt-2">
@@ -170,11 +170,11 @@ function CartLine({ label, value }: { label: string; value: string }) {
 export const couponPuzzle: Puzzle = {
   id: "coupon",
   theme: "checkout",
-  title: "Slice & Co. — discount",
+  title: "Marginalia — discount",
   emoji: "🎟️",
   vulnName: "Business Logic Flaw",
   question: "Can you get the £30 order below £20?",
-  initialUrl: "sliceandco.test/checkout",
+  initialUrl: "marginalia.test/checkout",
   editableUrl: false,
   hints: [
     "You used the offer once. Did anything actually stop you using it again?",

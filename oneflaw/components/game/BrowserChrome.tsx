@@ -87,6 +87,20 @@ export function BrowserChrome({
       >
         <View className="flex-row items-center gap-1.5">
           <Pressable
+            onPress={onExit}
+            accessibilityRole="button"
+            accessibilityLabel="Home, back to the OneFlaw dashboard"
+            className="h-11 w-11 items-center justify-center rounded-xl border border-[#34353d] bg-[#202127] active:bg-[#2a2b32]"
+          >
+            <Ionicons
+              name="home"
+              size={20}
+              color="#d4d4d8"
+              accessible={false}
+            />
+          </Pressable>
+
+          <Pressable
             onPress={onBack}
             disabled={!canBack}
             accessibilityRole="button"

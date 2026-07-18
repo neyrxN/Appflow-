@@ -29,7 +29,7 @@ const CASE_META: Record<string, CaseMeta> = {
     duration: "5 min",
   },
   coupon: {
-    appName: "Slice & Co.",
+    appName: "Marginalia",
     caseName: "Coupon stack",
     topic: "Discount rules",
     difficulty: "Easy",
