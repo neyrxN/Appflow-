@@ -139,7 +139,7 @@ function normalizePath(value: string): string {
 /* ---------- Pages ---------- */
 
 function Card({ children }: { children: React.ReactNode }) {
-  return <View className="mb-4 rounded-2xl bg-slate-800 p-5">{children}</View>;
+  return <View className="mb-4 rounded-3xl bg-slate-800 p-5">{children}</View>;
 }
 
 function KV({ label, value }: { label: string; value: string }) {
@@ -335,7 +335,7 @@ function ToggleRow({
       <Switch
         value={value}
         onValueChange={onChange}
-        trackColor={{ false: "#475569", true: "#22e07a" }}
+        trackColor={{ false: "#475569", true: "#34C759" }}
         thumbColor="#f8fafc"
       />
     </View>
@@ -346,7 +346,7 @@ function AdminPage() {
   return (
     <>
       <View className="mb-2 flex-row items-center gap-2">
-        <Ionicons name="server" size={15} color="#22e07a" />
+        <Ionicons name="server" size={15} color="#34C759" />
         <Text className="text-xs font-semibold uppercase tracking-wide text-accent">
           Admin dashboard · all members
         </Text>

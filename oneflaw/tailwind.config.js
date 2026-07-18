@@ -10,35 +10,32 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // ── Obsidian Signal ─────────────────────────────────────────
-        // Grounds: obsidian black with a faint blue bias.
-        void: { DEFAULT: "#06070B", 2: "#090B12" },
-        panel: { DEFAULT: "#0F131C", 2: "#141926" },
-        raised: "#1B2233",
-        line: "rgba(150,170,210,0.10)",
-        line2: "rgba(150,170,210,0.16)",
+        // ── Graphite ────────────────────────────────────────────────
+        // Premium iOS dark: black/charcoal surfaces, one warm accent,
+        // green reserved for success, coral reserved for the reveal.
+        void: { DEFAULT: "#08080A", 2: "#0E0E12" }, // app ground
+        panel: { DEFAULT: "#151517", 2: "#1C1C20" }, // cards / elevated
+        raised: "#28282E",
+        line: "rgba(255,255,255,0.07)",
+        line2: "rgba(255,255,255,0.12)",
 
-        // Cool-white text ramp (blue-biased neutrals, chosen not defaulted).
-        ice: "#EAF0FA",
-        dim: "#AEB8CC",
-        muted: "#7C879C",
-        faint: "#545E72",
+        // Text ramp (near-white → grey).
+        ice: "#F4F4F6",
+        dim: "#9A9AA2",
+        muted: "#6E6E76",
+        faint: "#48484F",
 
-        // Cool = the intact system.
-        cyan: "#31E7DE",
-        iris: "#7C6BFF",
-
-        // Hot = the flaw you expose (used sparingly).
-        flaw: "#FF3552",
-        ember: "#FF7A45",
-
-        // Semantic (separate from the accent hues).
-        good: "#33D69F",
+        // Restrained accents.
+        gold: "#E3C69A", // warm champagne accent
+        cyan: "#5B8DEF", // soft blue whisper (secure / focus)
+        iris: "#5B8DEF",
+        good: "#34C759", // success / solved only
         warn: "#F5B547",
+        flaw: "#F2705B", // muted coral — reveal severity only
 
-        // Back-compat aliases so legacy `accent` / `ink` classes recolor.
-        accent: { DEFAULT: "#31E7DE", dark: "#19B8C6" },
-        ink: "#06070B",
+        // Back-compat aliases for any legacy classes.
+        accent: { DEFAULT: "#E3C69A", dark: "#D4B483" },
+        ink: "#08080A",
       },
       fontFamily: {
         mono: ["SpaceMono"],

@@ -68,7 +68,7 @@ function CouponSite({ game }: { game: GameCtx }) {
       </View>
 
       {/* Cart */}
-      <View className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+      <View className="rounded-3xl border border-slate-200 bg-slate-50 p-6">
         <CartLine label="Large Pepperoni" value="£24.99" />
         <CartLine label="Garlic Bread" value="£5.01" />
 
@@ -121,7 +121,7 @@ function CouponSite({ game }: { game: GameCtx }) {
           onPress={apply}
           className="flex-row items-center gap-1.5 rounded-xl bg-slate-900 px-5 active:bg-slate-700"
         >
-          <Ionicons name="pricetag" size={15} color="#22e07a" />
+          <Ionicons name="pricetag" size={15} color="#34C759" />
           <Text className="font-semibold text-white">Apply</Text>
         </Pressable>
       </View>
@@ -138,7 +138,7 @@ function CouponSite({ game }: { game: GameCtx }) {
               banner.kind === "success" ? "checkmark-circle" : "alert-circle"
             }
             size={22}
-            color={banner.kind === "success" ? "#12b862" : "#dc2626"}
+            color={banner.kind === "success" ? "#34C759" : "#dc2626"}
           />
           <Text
             className={`flex-1 text-[15px] font-semibold ${

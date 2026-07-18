@@ -18,7 +18,13 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <Stack screenOptions={{ headerShown: false }}>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          animation: "slide_from_right",
+          contentStyle: { backgroundColor: "#08080A" },
+        }}
+      >
         <Stack.Screen name="index" />
         <Stack.Screen name="play/[id]" />
         <Stack.Screen name="+not-found" />

@@ -132,12 +132,12 @@ function OtpSite({ game }: { game: GameCtx }) {
 
       <View className="items-center">
         <View className="mb-5 h-16 w-16 items-center justify-center rounded-2xl bg-slate-800">
-          <Ionicons name="shield-checkmark" size={30} color="#22e07a" />
+          <Ionicons name="shield-checkmark" size={30} color="#34C759" />
         </View>
 
         {phase === "success" ? (
-          <View className="w-full items-center rounded-2xl bg-slate-900 p-8">
-            <Ionicons name="lock-open" size={30} color="#22e07a" />
+          <View className="w-full items-center rounded-3xl bg-slate-900 p-8">
+            <Ionicons name="lock-open" size={30} color="#34C759" />
             <Text className="mt-3 text-center text-base font-bold text-white">
               You&apos;re in.
             </Text>

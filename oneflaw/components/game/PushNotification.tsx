@@ -10,7 +10,7 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { NotificationConfig } from "@/puzzles/types";
-import { C, COOL } from "./fx";
+import { C, CHAMPAGNE } from "./fx";
 
 /**
  * A phone-style push banner that slides in from the top. The shell controls how
@@ -59,7 +59,7 @@ export function PushNotification({
         }}
       >
         <LinearGradient
-          colors={COOL}
+          colors={CHAMPAGNE}
           start={{ x: 0.1, y: 0 }}
           end={{ x: 0.9, y: 1 }}
           style={{

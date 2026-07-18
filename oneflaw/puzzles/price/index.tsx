@@ -129,7 +129,7 @@ function PriceSite({ game }: { game: GameCtx }) {
       </View>
 
       {/* Hero product */}
-      <View className="overflow-hidden rounded-2xl border border-slate-200">
+      <View className="overflow-hidden rounded-3xl border border-slate-200">
         <View className="h-40 items-center justify-center bg-orange-500">
           <Text className="text-6xl">👟</Text>
           <View className="absolute left-3 top-3 rounded-full bg-black/80 px-2.5 py-1">
@@ -149,7 +149,7 @@ function PriceSite({ game }: { game: GameCtx }) {
       </View>
 
       {/* Totals */}
-      <View className="mt-5 rounded-2xl border border-slate-200 p-4">
+      <View className="mt-5 rounded-3xl border border-slate-200 p-5">
         <SummaryRow label="Subtotal" value={euros(UNIT_CENTS)} />
         <SummaryRow label="Shipping" value={euros(SHIP_CENTS)} />
         <SummaryRow label="Discount" value={euros(0)} />
@@ -163,7 +163,7 @@ function PriceSite({ game }: { game: GameCtx }) {
 
       {charged !== null ? (
         <View className="mt-6 flex-row items-center gap-2 rounded-2xl bg-emerald-50 p-4">
-          <Ionicons name="checkmark-circle" size={22} color="#12b862" />
+          <Ionicons name="checkmark-circle" size={22} color="#34C759" />
           <Text className="flex-1 font-semibold text-emerald-700">
             Order confirmed — you paid {euros(charged)}. Your Aurora Runners are
             on the way!

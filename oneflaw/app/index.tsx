@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -9,18 +9,18 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { puzzles } from "@/puzzles/registry";
 import { getSolved } from "@/lib/storage";
 import type { Puzzle } from "@/puzzles/types";
-import { C, COOL, Glow, LiveDot, Seal } from "@/components/game/fx";
+import { C, CHAMPAGNE, LiveDot, PressableScale, Seal } from "@/components/game/fx";
 
-/** Cosmetic per-puzzle dashboard metadata (monogram + brand gradient + level). */
+/** Cosmetic per-puzzle metadata (monogram + a muted brand tint). */
 const META: Record<
   string,
-  { mono: string; colors: readonly [string, string]; level: number }
+  { mono: string; colors: readonly [string, string] }
 > = {
-  idor: { mono: "S", colors: ["#FF9A3D", "#F2560A"], level: 2 },
-  otp: { mono: "N", colors: ["#31E7DE", "#7C6BFF"], level: 3 },
-  price: { mono: "S", colors: ["#FB923C", "#EA580C"], level: 2 },
-  coupon: { mono: "S", colors: ["#FB7185", "#7C6BFF"], level: 1 },
-  admin: { mono: "F", colors: ["#C084FC", "#7C6BFF"], level: 2 },
+  idor: { mono: "S", colors: ["#C8925E", "#7E5636"] },
+  otp: { mono: "N", colors: ["#5B8DEF", "#3E62B0"] },
+  price: { mono: "S", colors: ["#D98A5A", "#9E5A34"] },
+  coupon: { mono: "S", colors: ["#C77E86", "#7E4E63"] },
+  admin: { mono: "F", colors: ["#8E86C8", "#5A5490"] },
 };
 
 export default function Dashboard() {
@@ -42,26 +42,12 @@ export default function Dashboard() {
   const firstOpenIdx = puzzles.findIndex((p) => !solved.includes(p.id));
 
   return (
-    <View className="flex-1" style={{ backgroundColor: C.void }}>
-      {/* Ambient top glow */}
-      <Glow
-        color={C.iris}
-        size={320}
-        opacity={0.16}
-        style={{ position: "absolute", top: -140, right: -80 }}
-      />
-      <Glow
-        color={C.cyan}
-        size={240}
-        opacity={0.1}
-        style={{ position: "absolute", top: -100, left: -80 }}
-      />
-
+    <View className="flex-1" style={{ backgroundColor: C.bg }}>
       <ScrollView
         contentContainerStyle={{
-          paddingTop: insets.top + 22,
-          paddingBottom: insets.bottom + 40,
-          paddingHorizontal: 18,
+          paddingTop: insets.top + 26,
+          paddingBottom: insets.bottom + 44,
+          paddingHorizontal: 20,
         }}
         showsVerticalScrollIndicator={false}
       >
@@ -71,63 +57,53 @@ export default function Dashboard() {
             <View className="flex-row items-center gap-3">
               <Seal size={42} />
               <View>
-                <Text className="text-[10px] font-semibold uppercase tracking-[3px] text-faint">
+                <Text className="font-mono text-[10px] uppercase tracking-[3px] text-faint">
                   Field kit
                 </Text>
-                <Text className="text-[26px] font-extrabold tracking-tight text-ice">
-                  One<Text style={{ color: C.cyan }}>Flaw</Text>
+                <Text className="mt-1 text-[26px] font-bold tracking-tight text-ice">
+                  One<Text style={{ color: C.gold }}>Flaw</Text>
                 </Text>
               </View>
             </View>
-            <View className="flex-row items-center gap-1.5 rounded-full border border-line2 px-3 py-1.5">
-              <LiveDot size={6} />
-              <Text className="font-mono text-[10px] uppercase tracking-widest text-dim">
-                Live
+            <View
+              className="flex-row items-center gap-2 rounded-full px-3.5 py-2"
+              style={{ backgroundColor: C.panel, borderWidth: 1, borderColor: C.line }}
+            >
+              <LiveDot size={6} color={solvedCount > 0 ? C.good : C.muted} />
+              <Text className="text-[12px] font-semibold text-dim">
+                {solvedCount}
+                <Text style={{ color: C.faint }}> / {puzzles.length}</Text>
               </Text>
             </View>
           </View>
 
-          <Text className="mt-4 text-[15px] leading-6 text-muted">
+          <Text className="mt-6 text-[16px] leading-6 text-dim">
             Every site below hides exactly{" "}
             <Text className="font-semibold text-ice">one</Text> security flaw.
-            Slip inside, poke around, and expose it.
+            Slip in, look around, and expose it.
           </Text>
 
           {/* Segmented progress — one segment per site */}
-          <View className="mt-6 flex-row items-center gap-3">
-            <View className="flex-1 flex-row gap-1.5">
-              {puzzles.map((p) => {
-                const done = solved.includes(p.id);
-                return (
-                  <View
-                    key={p.id}
-                    className="h-1.5 flex-1 overflow-hidden rounded-full"
-                    style={{ backgroundColor: done ? "transparent" : C.panel2 }}
-                  >
-                    {done ? (
-                      <LinearGradient
-                        colors={COOL}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 0 }}
-                        style={{ flex: 1 }}
-                      />
-                    ) : null}
-                  </View>
-                );
-              })}
-            </View>
-            <Text className="font-mono text-[11px] text-dim">
-              {solvedCount}/{puzzles.length} exposed
-            </Text>
+          <View className="mt-7 flex-row gap-1.5">
+            {puzzles.map((p) => {
+              const done = solved.includes(p.id);
+              return (
+                <View
+                  key={p.id}
+                  className="h-1 flex-1 rounded-full"
+                  style={{ backgroundColor: done ? C.good : C.panel2 }}
+                />
+              );
+            })}
           </View>
         </Animated.View>
 
         {/* Missions */}
-        <View className="mt-7 gap-3">
+        <View className="mt-8 gap-3.5">
           {puzzles.map((p, i) => (
             <Animated.View
               key={p.id}
-              entering={FadeInDown.delay(120 + i * 70).duration(520)}
+              entering={FadeInDown.delay(80 + i * 60).duration(460)}
             >
               <MissionCard
                 puzzle={p}
@@ -139,7 +115,7 @@ export default function Dashboard() {
           ))}
         </View>
 
-        <Text className="mt-8 text-center font-mono text-[10px] leading-5 tracking-wide text-faint">
+        <Text className="mt-9 text-center text-[11px] leading-5 text-faint">
           Everything here is fictional. No real sites, people, or systems are
           involved.
         </Text>
@@ -161,56 +137,54 @@ function MissionCard({
 }) {
   const meta = META[puzzle.id] ?? {
     mono: puzzle.title[0] ?? "?",
-    colors: COOL,
-    level: 2,
+    colors: ["#5B8DEF", "#3E62B0"] as const,
   };
 
   return (
-    <Pressable
+    <PressableScale
       onPress={onPress}
-      className="overflow-hidden rounded-2xl border p-4 active:opacity-90"
+      className="overflow-hidden rounded-[22px] p-[18px]"
       style={{
-        borderColor: featured ? "rgba(124,107,255,0.35)" : C.line,
+        borderWidth: 1,
+        borderColor: featured ? "rgba(227,198,154,0.22)" : C.line,
         backgroundColor: C.panel,
       }}
     >
       {featured ? (
         <LinearGradient
-          colors={["rgba(124,107,255,0.14)", "transparent"]}
+          colors={["rgba(227,198,154,0.08)", "transparent"]}
           start={{ x: 1, y: 0 }}
           end={{ x: 0.2, y: 0.9 }}
           style={{ position: "absolute", top: 0, right: 0, left: 0, bottom: 0 }}
         />
       ) : null}
 
-      <View className="flex-row items-center gap-3">
+      <View className="flex-row items-center gap-3.5">
         {/* Monogram favicon */}
         <LinearGradient
           colors={meta.colors}
           start={{ x: 0.1, y: 0 }}
           end={{ x: 0.9, y: 1 }}
           style={{
-            width: 40,
-            height: 40,
-            borderRadius: 11,
+            width: 44,
+            height: 44,
+            borderRadius: 13,
             alignItems: "center",
             justifyContent: "center",
           }}
         >
-          <Text className="text-[16px] font-extrabold" style={{ color: C.void }}>
-            {meta.mono}
-          </Text>
+          <Text className="text-[17px] font-bold text-white">{meta.mono}</Text>
         </LinearGradient>
 
         <View className="flex-1">
           <Text
-            className="text-[14.5px] font-bold tracking-tight text-ice"
+            className="text-[15px] font-semibold tracking-tight text-ice"
             numberOfLines={1}
           >
             {puzzle.title}
           </Text>
           <Text
-            className="mt-0.5 font-mono text-[10.5px] text-muted"
+            className="mt-1 font-mono text-[11px] text-muted"
             numberOfLines={1}
           >
             {puzzle.initialUrl}
@@ -218,10 +192,16 @@ function MissionCard({
         </View>
 
         {solved ? (
-          <View className="flex-row items-center gap-1 rounded-md border border-flaw/40 bg-flaw/10 px-2 py-1">
-            <Ionicons name="lock-open" size={11} color={C.flaw} />
-            <Text className="font-mono text-[9px] uppercase tracking-wider text-flaw">
-              Exposed
+          <View
+            className="flex-row items-center gap-1.5 rounded-lg px-2.5 py-1.5"
+            style={{ backgroundColor: "rgba(52,199,89,0.12)" }}
+          >
+            <Ionicons name="checkmark-circle" size={12} color={C.good} />
+            <Text
+              className="text-[10px] font-semibold uppercase tracking-wide"
+              style={{ color: C.good }}
+            >
+              Solved
             </Text>
           </View>
         ) : (
@@ -233,7 +213,7 @@ function MissionCard({
                   width: 5,
                   height: 5,
                   borderRadius: 3,
-                  backgroundColor: n < meta.level ? C.iris : C.faint,
+                  backgroundColor: C.faint,
                 }}
               />
             ))}
@@ -241,46 +221,43 @@ function MissionCard({
         )}
       </View>
 
-      {/* Footer line: class stays masked until solved */}
-      <View className="mt-3 flex-row items-center justify-between">
+      <View className="mt-4 flex-row items-center justify-between">
         {solved ? (
-          <Text className="font-mono text-[10.5px] tracking-wide text-dim">
-            {puzzle.vulnName}
-          </Text>
+          <Text className="text-[12px] text-muted">{puzzle.vulnName}</Text>
         ) : (
           <View className="flex-row items-center gap-2">
             <Text className="font-mono text-[9px] uppercase tracking-wider text-faint">
               Class
             </Text>
-            <Text className="font-mono text-[11px] tracking-widest text-faint">
-              ▓▓▓▓▓
+            <Text className="font-mono text-[11px] tracking-[3px] text-faint">
+              ●●●
             </Text>
           </View>
         )}
 
         {featured ? (
           <LinearGradient
-            colors={COOL}
+            colors={CHAMPAGNE}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={{
               flexDirection: "row",
               alignItems: "center",
               gap: 6,
-              paddingHorizontal: 14,
-              paddingVertical: 8,
-              borderRadius: 10,
+              paddingHorizontal: 16,
+              paddingVertical: 9,
+              borderRadius: 12,
             }}
           >
-            <Text className="text-[12px] font-bold" style={{ color: C.void }}>
+            <Text className="text-[12.5px] font-bold" style={{ color: C.bg }}>
               Begin hunt
             </Text>
-            <Ionicons name="arrow-forward" size={13} color={C.void} />
+            <Ionicons name="arrow-forward" size={13} color={C.bg} />
           </LinearGradient>
         ) : (
           <Ionicons name="chevron-forward" size={18} color={C.faint} />
         )}
       </View>
-    </Pressable>
+    </PressableScale>
   );
 }

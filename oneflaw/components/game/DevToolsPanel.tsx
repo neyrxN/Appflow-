@@ -19,7 +19,7 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { NetworkRequest } from "@/puzzles/types";
-import { C, COOL, Scanline } from "./fx";
+import { C, CHAMPAGNE } from "./fx";
 
 const methodColor: Record<string, string> = {
   GET: C.cyan,
@@ -194,13 +194,13 @@ function RequestDetail({ request }: { request: NetworkRequest }) {
             className="px-3 py-2"
             style={
               tab === t
-                ? { borderBottomWidth: 2, borderBottomColor: C.cyan }
+                ? { borderBottomWidth: 2, borderBottomColor: C.ice }
                 : undefined
             }
           >
             <Text
               className="text-[13px] font-semibold capitalize"
-              style={{ color: tab === t ? C.cyan : C.muted }}
+              style={{ color: tab === t ? C.ice : C.muted }}
             >
               {t}
             </Text>
@@ -239,7 +239,7 @@ function RequestDetail({ request }: { request: NetworkRequest }) {
               keyboardShouldPersistTaps="handled"
               contentContainerStyle={{ paddingVertical: 14 }}
             >
-              <SubLabel tint={C.cyan}>Request Payload · editable</SubLabel>
+              <SubLabel tint={C.gold}>Request Payload · editable</SubLabel>
               <TextInput
                 value={editText}
                 onChangeText={(t) => {
@@ -260,7 +260,7 @@ function RequestDetail({ request }: { request: NetworkRequest }) {
                   borderWidth: 1,
                   borderColor: C.line2,
                   padding: 13,
-                  color: C.cyan,
+                  color: C.ice,
                   minHeight: 180,
                   textAlignVertical: "top",
                 }}
@@ -291,7 +291,7 @@ function RequestDetail({ request }: { request: NetworkRequest }) {
               </Pressable>
               <Pressable onPress={resend} className="flex-[1.5] active:opacity-90">
                 <LinearGradient
-                  colors={COOL}
+                  colors={CHAMPAGNE}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   style={{
@@ -328,7 +328,7 @@ function RequestDetail({ request }: { request: NetworkRequest }) {
           className="px-4"
           contentContainerStyle={{ paddingVertical: 14, paddingBottom: insets.bottom + 20 }}
         >
-          <SubLabel tint={resent ? C.cyan : undefined}>
+          <SubLabel tint={resent ? C.gold : undefined}>
             {resent ? "Response · re-sent" : "Response"}
           </SubLabel>
           {resp !== null && resp !== undefined ? (
@@ -430,7 +430,7 @@ export function DevToolsPanel({
               <Ionicons name="chevron-back" size={20} color={C.muted} />
             </Pressable>
           ) : (
-            <Ionicons name="pulse" size={16} color={C.cyan} />
+            <Ionicons name="pulse" size={16} color={C.dim} />
           )}
           <Text className="flex-1 font-mono text-[13px] tracking-wide text-ice">
             NETWORK
@@ -463,13 +463,13 @@ export function DevToolsPanel({
                 className="px-3 py-2"
                 style={
                   active
-                    ? { borderBottomWidth: 2, borderBottomColor: C.cyan }
+                    ? { borderBottomWidth: 2, borderBottomColor: C.ice }
                     : undefined
                 }
               >
                 <Text
                   className="font-mono text-[11px]"
-                  style={{ color: active ? C.cyan : C.faint }}
+                  style={{ color: active ? C.ice : C.faint }}
                 >
                   {t}
                 </Text>
@@ -482,7 +482,6 @@ export function DevToolsPanel({
           <RequestDetail key={selected} request={req} />
         ) : (
           <View className="flex-1">
-            <Scanline />
             <ScrollView
               contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
             >

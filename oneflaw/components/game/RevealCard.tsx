@@ -11,7 +11,7 @@ import Animated, {
 } from "react-native-reanimated";
 
 import type { RevealContent } from "@/puzzles/types";
-import { C, HOT, Glow } from "./fx";
+import { C, CHAMPAGNE } from "./fx";
 
 const SCREEN_H = Dimensions.get("window").height;
 
@@ -25,19 +25,19 @@ type SectionDef = {
 function Section({ icon, label, body, danger, delay }: SectionDef & { delay: number }) {
   return (
     <Animated.View
-      entering={FadeInDown.delay(delay).duration(460)}
-      className="mb-2.5 rounded-2xl p-3.5"
+      entering={FadeInDown.delay(delay).duration(440)}
+      className="mb-2.5 rounded-2xl p-4"
       style={{
         borderWidth: 1,
-        borderColor: danger ? "rgba(255,53,82,0.28)" : C.line,
-        backgroundColor: danger ? "rgba(255,53,82,0.05)" : "rgba(255,255,255,0.02)",
+        borderColor: danger ? "rgba(242,112,91,0.25)" : C.line,
+        backgroundColor: danger ? "rgba(242,112,91,0.05)" : C.panel,
       }}
     >
-      <View className="mb-1.5 flex-row items-center gap-2">
-        <Ionicons name={icon} size={13} color={danger ? C.flaw : C.cyan} />
+      <View className="mb-2 flex-row items-center gap-2">
+        <Ionicons name={icon} size={13} color={danger ? C.flaw : C.muted} />
         <Text
-          className="font-mono text-[10px] font-bold uppercase tracking-[1.5px]"
-          style={{ color: danger ? C.flaw : C.cyan }}
+          className="text-[10px] font-semibold uppercase tracking-[1.5px]"
+          style={{ color: danger ? C.flaw : C.muted }}
         >
           {label}
         </Text>
@@ -66,7 +66,7 @@ export function RevealCard({
   useEffect(() => {
     translateY.value = withTiming(visible ? 0 : SCREEN_H, { duration: 420 });
     backdrop.value = withTiming(visible ? 1 : 0, { duration: 420 });
-    if (visible) setRunKey((k) => k + 1); // re-trigger the staggered reveal
+    if (visible) setRunKey((k) => k + 1);
   }, [visible, translateY, backdrop]);
 
   const cardStyle = useAnimatedStyle(() => ({
@@ -75,17 +75,17 @@ export function RevealCard({
   const backdropStyle = useAnimatedStyle(() => ({ opacity: backdrop.value }));
 
   async function share() {
-    await Clipboard.setStringAsync(`OneFlaw 🔓 exposed: ${reveal.vulnName}`);
+    await Clipboard.setStringAsync(`OneFlaw — exposed: ${reveal.vulnName}`);
     setCopied(true);
     setTimeout(() => setCopied(false), 1600);
   }
 
   const sections: SectionDef[] = [
-    { icon: "hand-left", label: "What you did", body: reveal.whatYouDid },
-    { icon: "construct", label: "Why it exists", body: reveal.whyItExists },
-    { icon: "warning", label: "Why it's dangerous", body: reveal.whyDangerous, danger: true },
-    { icon: "shield-checkmark", label: "How developers prevent it", body: reveal.howToPrevent },
-    { icon: "newspaper", label: "This really happened", body: reveal.realIncident },
+    { icon: "hand-left-outline", label: "What you did", body: reveal.whatYouDid },
+    { icon: "construct-outline", label: "Why it exists", body: reveal.whyItExists },
+    { icon: "warning-outline", label: "Why it's dangerous", body: reveal.whyDangerous, danger: true },
+    { icon: "shield-checkmark-outline", label: "How developers prevent it", body: reveal.howToPrevent },
+    { icon: "newspaper-outline", label: "This really happened", body: reveal.realIncident },
   ];
 
   return (
@@ -97,44 +97,28 @@ export function RevealCard({
       <Animated.View style={backdropStyle} className="absolute inset-0 bg-black/70" />
 
       <Animated.View
-        style={[cardStyle, { backgroundColor: C.void }]}
+        style={[cardStyle, { backgroundColor: C.bg, borderTopWidth: 1, borderColor: C.line2 }]}
         className="absolute bottom-0 left-0 right-0 overflow-hidden rounded-t-3xl"
       >
-        {/* Hot ambient wash + fracture */}
+        {/* faint 'flaw found' wash — restrained */}
         <LinearGradient
-          colors={["rgba(255,53,82,0.22)", "transparent"]}
-          start={{ x: 0.5, y: 0 }}
-          end={{ x: 0.5, y: 0.5 }}
-          style={{ position: "absolute", top: 0, left: 0, right: 0, height: 260 }}
-        />
-        <Glow
-          color={C.flaw}
-          size={220}
-          opacity={0.18}
-          style={{ position: "absolute", top: -110, alignSelf: "center" }}
-        />
-        {/* fracture strokes */}
-        <LinearGradient
-          colors={[C.cyan, C.iris, C.flaw, "transparent"]}
+          colors={["rgba(242,112,91,0.10)", "transparent"]}
           start={{ x: 0.5, y: 0 }}
           end={{ x: 0.5, y: 1 }}
-          style={{ position: "absolute", top: 0, left: "48%", width: 1.5, height: 150, transform: [{ rotate: "8deg" }], opacity: 0.6 }}
-        />
-        <LinearGradient
-          colors={[C.flaw, "transparent"]}
-          start={{ x: 0.5, y: 0 }}
-          end={{ x: 0.5, y: 1 }}
-          style={{ position: "absolute", top: 70, left: "56%", width: 1, height: 60, transform: [{ rotate: "-34deg" }], opacity: 0.5 }}
+          style={{ position: "absolute", top: 0, left: 0, right: 0, height: 200 }}
         />
 
         <View className="max-h-[86vh]">
           <View className="items-center pt-3">
-            <View style={{ height: 5, width: 44, borderRadius: 3, backgroundColor: C.raised }} />
+            <View style={{ height: 5, width: 40, borderRadius: 3, backgroundColor: C.raised }} />
           </View>
 
-          <View className="flex-row items-center gap-2 px-6 pb-2 pt-4">
-            <Ionicons name="lock-open" size={20} color={C.flaw} />
-            <Text className="flex-1 font-mono text-[11px] font-semibold uppercase tracking-[2px]" style={{ color: C.flaw }}>
+          <View className="flex-row items-center gap-2 px-6 pb-2 pt-5">
+            <Ionicons name="lock-open-outline" size={17} color={C.flaw} />
+            <Text
+              className="flex-1 text-[11px] font-semibold uppercase tracking-[2px]"
+              style={{ color: C.flaw }}
+            >
               Vulnerability exposed
             </Text>
             <Pressable onPress={onClose} hitSlop={8}>
@@ -142,46 +126,34 @@ export function RevealCard({
             </Pressable>
           </View>
 
-          <Text className="px-6 text-[26px] font-extrabold tracking-tight text-ice">
+          <Text className="px-6 text-[25px] font-bold leading-8 tracking-tight text-ice">
             {reveal.vulnName}
           </Text>
 
           {/* Severity */}
-          <View className="flex-row items-center gap-3 px-6 pb-3 pt-3">
+          <View className="flex-row items-center gap-2.5 px-6 pb-4 pt-3.5">
             <View
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: 22,
-                borderWidth: 2,
-                borderColor: C.flaw,
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: "rgba(255,53,82,0.08)",
-                shadowColor: C.flaw,
-                shadowOpacity: 0.5,
-                shadowRadius: 12,
-                shadowOffset: { width: 0, height: 0 },
-              }}
+              className="flex-row items-center gap-1.5 rounded-full px-3 py-1.5"
+              style={{ backgroundColor: "rgba(242,112,91,0.12)" }}
             >
-              <Ionicons name="alert" size={22} color={C.flaw} />
-            </View>
-            <View>
-              <Text className="text-[13px] font-bold text-ice">Critical severity</Text>
-              <Text className="font-mono text-[10px] tracking-wide" style={{ color: C.muted }}>
-                Exploitable with a browser alone
+              <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: C.flaw }} />
+              <Text className="text-[11px] font-bold uppercase tracking-wide" style={{ color: C.flaw }}>
+                Critical
               </Text>
             </View>
+            <Text className="text-[12px]" style={{ color: C.muted }}>
+              Exploitable with a browser alone
+            </Text>
           </View>
 
           <ScrollView
             key={runKey}
             className="px-6"
-            contentContainerStyle={{ paddingBottom: 8, paddingTop: 4 }}
+            contentContainerStyle={{ paddingBottom: 8, paddingTop: 2 }}
             showsVerticalScrollIndicator={false}
           >
             {sections.map((s, i) => (
-              <Section key={s.label} {...s} delay={80 + i * 80} />
+              <Section key={s.label} {...s} delay={70 + i * 70} />
             ))}
           </ScrollView>
 
@@ -201,7 +173,7 @@ export function RevealCard({
             </Pressable>
             <Pressable onPress={onClose} className="flex-1 active:opacity-90">
               <LinearGradient
-                colors={HOT}
+                colors={CHAMPAGNE}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={{
@@ -213,10 +185,10 @@ export function RevealCard({
                   paddingVertical: 14,
                 }}
               >
-                <Text className="font-bold" style={{ color: C.void }}>
+                <Text className="font-bold" style={{ color: C.bg }}>
                   Keep exploring
                 </Text>
-                <Ionicons name="arrow-forward" size={16} color={C.void} />
+                <Ionicons name="arrow-forward" size={16} color={C.bg} />
               </LinearGradient>
             </Pressable>
           </View>

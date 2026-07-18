@@ -123,7 +123,7 @@ function IdorSite({ game }: { game: GameCtx }) {
             Order details
           </Text>
 
-          <View className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+          <View className="rounded-3xl border border-slate-200 bg-slate-50 p-6">
             <View className="mb-4 flex-row items-center justify-between">
               <Text className="text-lg font-bold text-slate-900">
                 Order #{orderId}
