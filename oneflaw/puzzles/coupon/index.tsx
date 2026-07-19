@@ -6,7 +6,7 @@ import type { GameCtx, Puzzle } from "@/puzzles/types";
 
 const START_PENCE = 3000; // £30.00
 const WIN_UNDER_PENCE = 2000; // must drop below £20.00
-const COUPON = "SLICE20";
+const COUPON = "READ20";
 
 const money = (pence: number) => `£${(pence / 100).toFixed(2)}`;
 
@@ -62,15 +62,15 @@ function CouponSite({ game }: { game: GameCtx }) {
       keyboardShouldPersistTaps="handled"
     >
       <View className="mb-5 flex-row items-center gap-2">
-        <Text className="text-2xl">🍕</Text>
-        <Text className="text-xl font-extrabold text-slate-900">Slice & Co.</Text>
+        <Text className="text-2xl">📚</Text>
+        <Text className="text-xl font-extrabold text-slate-900">Marginalia</Text>
         <Text className="ml-auto text-sm text-slate-500">Checkout</Text>
       </View>
 
       {/* Cart */}
-      <View className="rounded-3xl border border-slate-200 bg-slate-50 p-6">
-        <CartLine label="Large Pepperoni" value="£24.99" />
-        <CartLine label="Garlic Bread" value="£5.01" />
+      <View className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+        <CartLine label="Hardback Novel" value="£24.99" />
+        <CartLine label="Cloth Bookmark" value="£5.01" />
 
         {applied > 0 ? (
           <View className="mt-1 border-t border-dashed border-slate-300 pt-2">
@@ -109,19 +109,23 @@ function CouponSite({ game }: { game: GameCtx }) {
       <View className="flex-row gap-2">
         <TextInput
           value={code}
+          accessibilityLabel="Discount code"
+          accessibilityHint="Enter the code from the training notification"
           onChangeText={setCode}
           placeholder="Enter code"
           placeholderTextColor="#94a3b8"
           autoCapitalize="characters"
           autoCorrect={false}
           onSubmitEditing={apply}
-          className="flex-1 rounded-xl border border-slate-300 px-4 py-3 font-mono text-[15px] text-slate-800"
+          className="min-h-12 flex-1 rounded-xl border border-slate-300 px-4 font-mono text-[15px] text-slate-800"
         />
         <Pressable
           onPress={apply}
-          className="flex-row items-center gap-1.5 rounded-xl bg-slate-900 px-5 active:bg-slate-700"
+          accessibilityRole="button"
+          accessibilityLabel="Apply discount code"
+          className="min-h-12 flex-row items-center gap-1.5 rounded-xl bg-slate-900 px-5 active:bg-slate-700"
         >
-          <Ionicons name="pricetag" size={15} color="#34C759" />
+          <Ionicons name="pricetag" size={15} color="#789f90" />
           <Text className="font-semibold text-white">Apply</Text>
         </Pressable>
       </View>
@@ -129,6 +133,7 @@ function CouponSite({ game }: { game: GameCtx }) {
       {/* Prominent feedback banner */}
       {banner ? (
         <View
+          accessibilityLiveRegion="polite"
           className={`mt-4 flex-row items-center gap-3 rounded-2xl p-4 ${
             banner.kind === "success" ? "bg-emerald-50" : "bg-red-50"
           }`}
@@ -138,7 +143,7 @@ function CouponSite({ game }: { game: GameCtx }) {
               banner.kind === "success" ? "checkmark-circle" : "alert-circle"
             }
             size={22}
-            color={banner.kind === "success" ? "#34C759" : "#dc2626"}
+            color={banner.kind === "success" ? "#526f62" : "#dc2626"}
           />
           <Text
             className={`flex-1 text-[15px] font-semibold ${
@@ -165,11 +170,11 @@ function CartLine({ label, value }: { label: string; value: string }) {
 export const couponPuzzle: Puzzle = {
   id: "coupon",
   theme: "checkout",
-  title: "Slice & Co. — discount",
+  title: "Marginalia — discount",
   emoji: "🎟️",
   vulnName: "Business Logic Flaw",
-  question: "Can you get this £30 order for under £20?",
-  initialUrl: "sliceandco.test/checkout",
+  question: "Can you get the £30 order below £20?",
+  initialUrl: "marginalia.test/checkout",
   editableUrl: false,
   hints: [
     "You used the offer once. Did anything actually stop you using it again?",
@@ -188,6 +193,6 @@ export const couponPuzzle: Puzzle = {
     howToPrevent:
       "Enforce one-use-per-account on the server and record every redemption. Recompute the final total server-side before charging.",
     realIncident:
-      "Discount and coupon abuse is widely reported — bug-bounty write-ups describe unlimited-stacking codes and redemption bugs with six-figure estimated losses.",
+      "Stripe: a one-time $20,000 fee discount could be accepted again by sending many requests at once. A researcher responsibly repeated it 30 times on his own account, demonstrating $600,000 in fee-free processing. Stripe fixed the race condition.",
   },
 };

@@ -2,50 +2,55 @@ import { useEffect, useState } from "react";
 import { Dimensions, Pressable, ScrollView, Text, View } from "react-native";
 import * as Clipboard from "expo-clipboard";
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import Animated, {
-  FadeInDown,
+  ReduceMotion,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { RevealContent } from "@/puzzles/types";
-import { C, CHAMPAGNE } from "./fx";
 
 const SCREEN_H = Dimensions.get("window").height;
 
-type SectionDef = {
+type CopyState = "idle" | "copied" | "error";
+
+function Section({
+  icon,
+  label,
+  body,
+  danger,
+}: {
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
   body: string;
   danger?: boolean;
-};
-
-function Section({ icon, label, body, danger, delay }: SectionDef & { delay: number }) {
+}) {
   return (
-    <Animated.View
-      entering={FadeInDown.delay(delay).duration(440)}
-      className="mb-2.5 rounded-2xl p-4"
-      style={{
-        borderWidth: 1,
-        borderColor: danger ? "rgba(242,112,91,0.25)" : C.line,
-        backgroundColor: danger ? "rgba(242,112,91,0.05)" : C.panel,
-      }}
-    >
+    <View className="mb-6 rounded-2xl bg-slate-900/70 p-4">
       <View className="mb-2 flex-row items-center gap-2">
-        <Ionicons name={icon} size={13} color={danger ? C.flaw : C.muted} />
+        <View
+          className={`h-8 w-8 items-center justify-center rounded-full ${
+            danger ? "bg-rose-950" : "bg-slate-800"
+          }`}
+        >
+          <Ionicons
+            name={icon}
+            size={16}
+            color={danger ? "#c99090" : "#91b3a4"}
+          />
+        </View>
         <Text
-          className="text-[10px] font-semibold uppercase tracking-[1.5px]"
-          style={{ color: danger ? C.flaw : C.muted }}
+          accessibilityRole="header"
+          className="flex-1 text-[13px] font-bold"
+          style={{ color: danger ? "#c99090" : "#91b3a4" }}
         >
           {label}
         </Text>
       </View>
-      <Text className="text-[14px] leading-6" style={{ color: C.dim }}>
-        {body}
-      </Text>
-    </Animated.View>
+      <Text className="text-[15px] leading-6 text-slate-200">{body}</Text>
+    </View>
   );
 }
 
@@ -58,15 +63,27 @@ export function RevealCard({
   reveal: RevealContent;
   onClose: () => void;
 }) {
+  const insets = useSafeAreaInsets();
   const translateY = useSharedValue(SCREEN_H);
   const backdrop = useSharedValue(0);
-  const [copied, setCopied] = useState(false);
-  const [runKey, setRunKey] = useState(0);
+  const [copyState, setCopyState] = useState<CopyState>("idle");
 
   useEffect(() => {
-    translateY.value = withTiming(visible ? 0 : SCREEN_H, { duration: 420 });
-    backdrop.value = withTiming(visible ? 1 : 0, { duration: 420 });
-    if (visible) setRunKey((k) => k + 1);
+    if (!visible) {
+      translateY.value = SCREEN_H;
+      backdrop.value = 0;
+      return;
+    }
+
+    translateY.value = withTiming(0, {
+      duration: 360,
+      reduceMotion: ReduceMotion.System,
+    });
+    backdrop.value = withTiming(1, {
+      duration: 240,
+      reduceMotion: ReduceMotion.System,
+    });
+    setCopyState("idle");
   }, [visible, translateY, backdrop]);
 
   const cardStyle = useAnimatedStyle(() => ({
@@ -74,122 +91,184 @@ export function RevealCard({
   }));
   const backdropStyle = useAnimatedStyle(() => ({ opacity: backdrop.value }));
 
-  async function share() {
-    await Clipboard.setStringAsync(`OneFlaw — exposed: ${reveal.vulnName}`);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1600);
+  async function copyResult() {
+    const result = [
+      `OneFlaw case solved: ${reveal.vulnName}`,
+      reveal.whatYouDid,
+      `How to prevent it: ${reveal.howToPrevent}`,
+    ].join("\n\n");
+
+    try {
+      await Clipboard.setStringAsync(result);
+      setCopyState("copied");
+    } catch {
+      setCopyState("error");
+    }
+    setTimeout(() => setCopyState("idle"), 1800);
   }
 
-  const sections: SectionDef[] = [
-    { icon: "hand-left-outline", label: "What you did", body: reveal.whatYouDid },
-    { icon: "construct-outline", label: "Why it exists", body: reveal.whyItExists },
-    { icon: "warning-outline", label: "Why it's dangerous", body: reveal.whyDangerous, danger: true },
-    { icon: "shield-checkmark-outline", label: "How developers prevent it", body: reveal.howToPrevent },
-    { icon: "newspaper-outline", label: "This really happened", body: reveal.realIncident },
-  ];
+  // Keep the solved answer completely out of the accessibility and web trees
+  // until the player explicitly opens it.
+  if (!visible) return null;
 
   return (
     <View
-      pointerEvents={visible ? "auto" : "none"}
-      className="absolute inset-0"
-      style={{ zIndex: 20 }}
+      accessibilityLabel={`Case solved: ${reveal.vulnName}`}
+      accessibilityViewIsModal
+      role="dialog"
+      style={{
+        position: "absolute",
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0,
+        zIndex: 20,
+      }}
     >
-      <Animated.View style={backdropStyle} className="absolute inset-0 bg-black/70" />
-
       <Animated.View
-        style={[cardStyle, { backgroundColor: C.bg, borderTopWidth: 1, borderColor: C.line2 }]}
-        className="absolute bottom-0 left-0 right-0 overflow-hidden rounded-t-3xl"
+        style={[
+          backdropStyle,
+          {
+            position: "absolute",
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.68)",
+          },
+        ]}
+      />
+      <Animated.View
+        style={[
+          cardStyle,
+          {
+            position: "absolute",
+            right: 0,
+            bottom: 0,
+            left: 0,
+            backgroundColor: "#0b0f14",
+            borderTopLeftRadius: 28,
+            borderTopRightRadius: 28,
+            overflow: "hidden",
+          },
+        ]}
       >
-        {/* faint 'flaw found' wash — restrained */}
-        <LinearGradient
-          colors={["rgba(242,112,91,0.10)", "transparent"]}
-          start={{ x: 0.5, y: 0 }}
-          end={{ x: 0.5, y: 1 }}
-          style={{ position: "absolute", top: 0, left: 0, right: 0, height: 200 }}
-        />
-
-        <View className="max-h-[86vh]">
-          <View className="items-center pt-3">
-            <View style={{ height: 5, width: 40, borderRadius: 3, backgroundColor: C.raised }} />
+        <View style={{ maxHeight: SCREEN_H * 0.88 }}>
+          <View className="items-center pb-1 pt-3">
+            <View className="h-1.5 w-12 rounded-full bg-slate-600" />
           </View>
 
-          <View className="flex-row items-center gap-2 px-6 pb-2 pt-5">
-            <Ionicons name="lock-open-outline" size={17} color={C.flaw} />
-            <Text
-              className="flex-1 text-[11px] font-semibold uppercase tracking-[2px]"
-              style={{ color: C.flaw }}
+          <View className="flex-row items-center px-5 pb-1 pt-2">
+            <View className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-slate-800">
+              <Ionicons name="shield-checkmark" size={21} color="#91b3a4" />
+            </View>
+            <View className="flex-1">
+              <Text
+                className="text-[12px] font-bold uppercase tracking-[1.5px]"
+                style={{ color: "#91b3a4" }}
+              >
+                Case solved
+              </Text>
+              <Text className="mt-0.5 text-sm text-slate-400">
+                Here is what happened behind the screen.
+              </Text>
+            </View>
+            <Pressable
+              onPress={onClose}
+              accessibilityRole="button"
+              accessibilityLabel="Close case explanation"
+              className="h-12 w-12 items-center justify-center rounded-full active:bg-slate-800"
             >
-              Vulnerability exposed
-            </Text>
-            <Pressable onPress={onClose} hitSlop={8}>
-              <Ionicons name="close" size={22} color={C.muted} />
+              <Ionicons name="close" size={24} color="#cbd5e1" />
             </Pressable>
           </View>
-
-          <Text className="px-6 text-[25px] font-bold leading-8 tracking-tight text-ice">
+          <Text
+            accessibilityRole="header"
+            className="px-5 pb-4 pt-3 text-2xl font-extrabold leading-8 text-white"
+          >
             {reveal.vulnName}
           </Text>
 
-          {/* Severity */}
-          <View className="flex-row items-center gap-2.5 px-6 pb-4 pt-3.5">
-            <View
-              className="flex-row items-center gap-1.5 rounded-full px-3 py-1.5"
-              style={{ backgroundColor: "rgba(242,112,91,0.12)" }}
-            >
-              <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: C.flaw }} />
-              <Text className="text-[11px] font-bold uppercase tracking-wide" style={{ color: C.flaw }}>
-                Critical
-              </Text>
-            </View>
-            <Text className="text-[12px]" style={{ color: C.muted }}>
-              Exploitable with a browser alone
-            </Text>
-          </View>
-
           <ScrollView
-            key={runKey}
-            className="px-6"
-            contentContainerStyle={{ paddingBottom: 8, paddingTop: 2 }}
+            className="px-5"
+            style={{ flexShrink: 1 }}
+            contentContainerStyle={{ paddingBottom: 12 }}
             showsVerticalScrollIndicator={false}
           >
-            {sections.map((s, i) => (
-              <Section key={s.label} {...s} delay={70 + i * 70} />
-            ))}
+            <View className="mb-6 rounded-2xl border border-slate-700 bg-slate-900 p-4">
+              <Text
+                className="mb-2 text-[12px] font-bold uppercase tracking-[1.2px]"
+                style={{ color: "#91b3a4" }}
+              >
+                In plain language
+              </Text>
+              <Text className="text-base font-medium leading-6 text-white">
+                {reveal.whatYouDid}
+              </Text>
+            </View>
+            <Section
+              icon="construct"
+              label="Why this happened"
+              body={reveal.whyItExists}
+            />
+            <Section
+              icon="warning"
+              label="Why it matters"
+              body={reveal.whyDangerous}
+              danger
+            />
+            <Section
+              icon="shield-checkmark"
+              label="How to stop it"
+              body={reveal.howToPrevent}
+            />
+            <Section
+              icon="newspaper"
+              label="Where this shows up"
+              body={reveal.realIncident}
+            />
           </ScrollView>
 
           <View
-            className="flex-row gap-3 px-6 py-4"
-            style={{ borderTopWidth: 1, borderTopColor: C.line }}
+            className="flex-row gap-3 border-t border-slate-800 bg-ink px-5 pt-4"
+            style={{ paddingBottom: insets.bottom + 16 }}
           >
             <Pressable
-              onPress={share}
-              className="flex-1 flex-row items-center justify-center gap-2 rounded-xl py-3.5 active:opacity-70"
-              style={{ borderWidth: 1, borderColor: C.line2 }}
+              onPress={copyResult}
+              accessibilityRole="button"
+              accessibilityLabel={
+                copyState === "copied"
+                  ? "Case result copied"
+                  : copyState === "error"
+                    ? "Copy failed. Try copying the case result again"
+                    : "Copy case result"
+              }
+              className="h-12 flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-slate-700 active:bg-slate-800"
             >
-              <Ionicons name={copied ? "checkmark" : "share-outline"} size={18} color={C.dim} />
-              <Text className="font-semibold" style={{ color: C.dim }}>
-                {copied ? "Copied!" : "Share"}
+              <Ionicons
+                name={copyState === "copied" ? "checkmark" : "copy-outline"}
+                size={18}
+                color="#e2e8f0"
+              />
+              <Text
+                accessibilityLiveRegion="polite"
+                className="font-semibold text-slate-200"
+              >
+                {copyState === "copied"
+                  ? "Result copied"
+                  : copyState === "error"
+                    ? "Couldn’t copy"
+                    : "Copy result"}
               </Text>
             </Pressable>
-            <Pressable onPress={onClose} className="flex-1 active:opacity-90">
-              <LinearGradient
-                colors={CHAMPAGNE}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 6,
-                  borderRadius: 12,
-                  paddingVertical: 14,
-                }}
-              >
-                <Text className="font-bold" style={{ color: C.bg }}>
-                  Keep exploring
-                </Text>
-                <Ionicons name="arrow-forward" size={16} color={C.bg} />
-              </LinearGradient>
+            <Pressable
+              onPress={onClose}
+              accessibilityRole="button"
+              accessibilityLabel="Continue exploring"
+              className="h-12 flex-1 flex-row items-center justify-center gap-1.5 rounded-xl bg-[#789f90] active:bg-[#648576]"
+            >
+              <Text className="font-bold text-ink">Continue</Text>
+              <Ionicons name="arrow-forward" size={16} color="#0b0f14" />
             </Pressable>
           </View>
         </View>

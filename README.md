@@ -8,6 +8,12 @@ Poke around, break it, and read the reveal card to learn what really went wrong.
 Everything in the app is fictional. No real sites, people, or systems are involved,
 and nothing talks to a network — the whole game runs on-device.
 
+## Screenshots
+
+| Dashboard | The wrong order | Name your price | Hidden admin |
+| :-: | :-: | :-: | :-: |
+| <img src="screenshots/home.png" width="200" alt="Case dashboard" /> | <img src="screenshots/case-idor.png" width="200" alt="IDOR case — Slice & Co. order page" /> | <img src="screenshots/case-price.png" width="200" alt="Price tampering case — SOLE checkout" /> | <img src="screenshots/case-admin.png" width="200" alt="Hidden admin case — FitZone account" /> |
+
 ## Requirements
 
 - Node.js 20 or newer (LTS recommended) and npm
@@ -41,7 +47,9 @@ Progress (solved ✓ badges) is stored locally on the device.
 
 ## Project layout
 
-- `app/` — screens (expo-router): dashboard and the `play/[id]` game screen
-- `puzzles/` — one folder per level, plus `registry.ts` that lists them
-- `components/game/` — the fake in-app "browser" shell and game UI
-- `lib/storage.ts` — the only persistence: solved-puzzle ids in AsyncStorage
+The app lives in the `oneflaw/` folder:
+
+- `oneflaw/app/` — screens (expo-router): dashboard and the `play/[id]` game screen
+- `oneflaw/puzzles/` — one folder per level, plus `registry.ts` that lists them
+- `oneflaw/components/game/` — the fake in-app "browser" shell and game UI
+- `oneflaw/lib/storage.ts` — local solved-puzzle progress and onboarding state in AsyncStorage

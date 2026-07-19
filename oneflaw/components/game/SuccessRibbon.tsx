@@ -1,20 +1,18 @@
 import { useEffect } from "react";
 import { Pressable, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import Animated, {
+  ReduceMotion,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { C, CHAMPAGNE } from "./fx";
-
 /**
- * Non-blocking success ribbon shown the instant the flaw is found — a calm,
- * green "solved" moment. It never traps the player: dismiss and keep exploring,
- * or open the full reveal.
+ * Non-blocking success ribbon shown the instant the flaw fires. It sits at the
+ * bottom and does NOT trap the player — they can dismiss it and keep exploring,
+ * or open the full explanation.
  */
 export function SuccessRibbon({
   message,
@@ -26,65 +24,93 @@ export function SuccessRibbon({
   onDismiss: () => void;
 }) {
   const insets = useSafeAreaInsets();
-  const y = useSharedValue(140);
-  const o = useSharedValue(0);
+  const y = useSharedValue(180);
 
   useEffect(() => {
-    y.value = withTiming(0, { duration: 340 });
-    o.value = withTiming(1, { duration: 340 });
-  }, [y, o]);
+    y.value = withTiming(0, {
+      duration: 240,
+      reduceMotion: ReduceMotion.System,
+    });
+  }, [y]);
 
   const style = useAnimatedStyle(() => ({
-    opacity: o.value,
     transform: [{ translateY: y.value }],
   }));
 
   return (
     <Animated.View
-      style={[style, { paddingBottom: insets.bottom + 12 }]}
-      className="absolute bottom-0 left-0 right-0 z-10 px-4"
+      style={[
+        style,
+        {
+          position: "absolute",
+          right: 0,
+          bottom: 0,
+          left: 0,
+          zIndex: 10,
+          paddingHorizontal: 16,
+          paddingBottom: insets.bottom + 12,
+        },
+      ]}
     >
       <View
-        className="rounded-2xl p-4"
-        style={{
-          backgroundColor: C.panel,
-          borderWidth: 1,
-          borderColor: "rgba(52,199,89,0.28)",
-        }}
+        className="overflow-hidden rounded-2xl border border-slate-700"
+        style={{ backgroundColor: "#11161a" }}
       >
-        <View className="flex-row items-start gap-2.5">
-          <View
-            className="items-center justify-center rounded-full"
-            style={{ width: 24, height: 24, backgroundColor: "rgba(52,199,89,0.14)" }}
-          >
-            <Ionicons name="checkmark" size={14} color={C.good} />
+        <View className="flex-row items-center p-3">
+          <View className="mr-3 h-9 w-9 items-center justify-center rounded-full bg-slate-800">
+            <Ionicons
+              name="shield-checkmark"
+              size={19}
+              color="#91b3a4"
+              accessible={false}
+            />
           </View>
-          <Text className="flex-1 text-[14px] font-semibold leading-5 text-ice">
-            {message}
-          </Text>
-          <Pressable onPress={onDismiss} hitSlop={8}>
-            <Ionicons name="close" size={18} color={C.muted} />
+          <View className="min-w-0 flex-1">
+            <Text
+              className="text-[12px] font-bold uppercase tracking-[1.5px]"
+              style={{ color: "#91b3a4" }}
+            >
+              Case solved
+            </Text>
+            <Text
+              accessibilityLabel={`Case solved. ${message}`}
+              accessibilityLiveRegion="assertive"
+              accessibilityRole="summary"
+              className="mt-0.5 text-[14px] font-semibold leading-5"
+              style={{ color: "#f3efe5" }}
+            >
+              {message}
+            </Text>
+          </View>
+          <Pressable
+            onPress={onDismiss}
+            accessibilityRole="button"
+            accessibilityLabel="Dismiss case solved message"
+            className="h-12 w-12 items-center justify-center rounded-full active:bg-slate-800"
+          >
+            <Ionicons
+              name="close"
+              size={21}
+              color="#cbd5e1"
+              accessible={false}
+            />
           </Pressable>
         </View>
-        <Pressable onPress={onExplain} className="mt-3.5 active:opacity-90">
-          <LinearGradient
-            colors={CHAMPAGNE}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 6,
-              borderRadius: 12,
-              paddingVertical: 11,
-            }}
-          >
-            <Text className="font-bold" style={{ color: C.bg }}>
-              What did I just do?
-            </Text>
-            <Ionicons name="arrow-forward" size={16} color={C.bg} />
-          </LinearGradient>
+        <Pressable
+          onPress={onExplain}
+          accessibilityRole="button"
+          accessibilityLabel="View case explanation"
+          className="h-12 flex-row items-center justify-between border-t border-slate-700 px-4 active:bg-slate-800"
+        >
+          <Text className="text-[14px] font-bold" style={{ color: "#91b3a4" }}>
+            View explanation
+          </Text>
+          <Ionicons
+            name="arrow-forward"
+            size={17}
+            color="#91b3a4"
+            accessible={false}
+          />
         </Pressable>
       </View>
     </Animated.View>
@@ -97,16 +123,26 @@ export function ReopenPill({ onPress }: { onPress: () => void }) {
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel="Open case explanation"
       style={{
+        position: "absolute",
+        right: 16,
         bottom: insets.bottom + 16,
-        backgroundColor: C.panel2,
-        borderWidth: 1,
-        borderColor: C.line2,
+        zIndex: 10,
+        minHeight: 48,
       }}
-      className="absolute right-4 z-10 flex-row items-center gap-1.5 rounded-full px-4 py-2.5 active:opacity-80"
+      className="flex-row items-center gap-2 rounded-full border border-slate-700 bg-slate-900 px-4 active:bg-slate-800"
     >
-      <Ionicons name="lock-open-outline" size={14} color={C.good} />
-      <Text className="text-xs font-semibold text-ice">What happened?</Text>
+      <Ionicons
+        name="shield-checkmark"
+        size={16}
+        color="#91b3a4"
+        accessible={false}
+      />
+      <Text className="text-sm font-semibold text-slate-100">
+        Case explanation
+      </Text>
     </Pressable>
   );
 }
